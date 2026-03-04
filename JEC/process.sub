@@ -1,0 +1,28 @@
+universe              = vanilla
+executable            = process.sh
+
+# Arguments
+inputfiles = /u/user/lidakal/UPC2023/CMSSW_13_2_15/src/PhysicsJetEnergyCorrection/MCTruthStudies/21153_ParallelizationWithCondor/merged_jra_files.txt
+outputfile = /u/user/lidakal/SE_UserHome/condorOutputRootMacro/output_$(Cluster)_$(Process).root
+
+arguments             = $(inputfile) $(outputfile)
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+
+# Files shipped to worker node
+transfer_input_files  = process.sh
+
+# Logs
+output = log/job_$(Cluster)_$(Process).out
+error  = log/job_$(Cluster)_$(Process).err
+log    = log/job_$(Cluster).log
+
+# Resources
+request_cpus   = 1
+request_memory = 4000
+request_disk   = 4000
+
++JobFlavour = "workday"
+
+queue inputfile from $(inputfiles)
