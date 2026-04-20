@@ -2,7 +2,7 @@ universe              = vanilla
 executable            = process.sh
 
 # Arguments
-inputfiles = /u/user/lidakal/UPC2023/CMSSW_13_2_15/src/PhysicsJetEnergyCorrection/MCTruthStudies/21153_ParallelizationWithCondor/merged_jra_files.txt
+inputfiles = /u/user/lidakal/UPC2023/upcJetAnalysis/JEC/beamA_pthat5_merged_files.txt
 outputfile = /u/user/lidakal/SE_UserHome/condorOutputRootMacro/output_$(Cluster)_$(Process).root
 
 arguments             = $(inputfile) $(outputfile)

@@ -1,25 +1,111 @@
 #include "JetUncertainty.h"
 #include "JetCorrector.h"
 
-const Int_t nrefpt_bins = 14;
-const Float_t refpt_bins[] = {0, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 20, 30, 50};
+const Int_t nrefpt_bins = 25;
+const Float_t refpt_bins[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 23, 27, 30, 50, 100};
 
-const Int_t njes_bins = 10;
-const Float_t jes_bins[] = {0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0};
+const Int_t njes_bins = 15;
+const Float_t jes_bins[] = {0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0};
 
-const Int_t neta_bins = 36;
-const Float_t eta_bins[] = {-5.191, -4.013, -2.964, 
-    -2.500, 
-    -1.740, -1.305, 
-    -1.218, -1.044, -0.957, 
-    -0.783, -0.696, -0.609, -0.522, -0.435, -0.348, -0.261, -0.174, -0.087, 
-    +0.000,
-    +0.087, +0.174, +0.261, +0.348, +0.435, +0.522, +0.609, +0.696, +0.783, 
-    +0.957, +1.044, +1.218, 
-    +1.305, +1.740, 
-    +2.500,
-    +2.964, +4.013, +5.191   
+// const Int_t neta_bins = 8;
+// const Float_t eta_bins[] = {
+//     -5.191, -2.964, -2.500, -1.305, 
+//     +0.000, 
+//     +1.305, +2.500, +2.964, +5.191};
+
+// const Int_t neta_bins = 14;
+// const Float_t eta_bins[] = {
+//     -5.191, -4.013, -2.964, 
+//     -2.500, -1.740, 
+//     -1.305, -0.696, 
+//     +0.000, 
+//     +0.696, +1.305, 
+//     +1.740, +2.500, 
+//     +2.964, +4.013, +5.191
+// };
+
+// const Int_t neta_bins = 20;
+// const Float_t eta_bins[] = {
+//     -5.191, -4.013, -2.964, 
+//     -2.500, -1.740, -1.305, -1.044, -0.696, -0.435, -0.174,
+//     +0.000, 
+//     +0.174, +0.435, +0.696, +1.044, +1.305, +1.740, +2.500, 
+//     +2.964, +4.013, +5.191
+// };
+
+// const Int_t neta_bins = 36;
+// const Float_t eta_bins[] = {
+//     -5.191, -4.013, -2.964, 
+//     -2.500, 
+//     -1.740, -1.305, 
+//     -1.218, -1.044, -0.957, 
+//     -0.783, -0.696, -0.609, -0.522, -0.435, -0.348, -0.261, -0.174, -0.087, 
+//     +0.000,
+//     +0.087, +0.174, +0.261, +0.348, +0.435, +0.522, +0.609, +0.696, +0.783, 
+//     +0.957, +1.044, +1.218, 
+//     +1.305, +1.740, 
+//     +2.500,
+//     +2.964, +4.013, +5.191   
+// };
+
+// const Int_t neta_bins = 56;
+// const Float_t eta_bins[] = {
+//     -5.191, -4.363, -3.839, 
+//     -3.489, -3.314, -3.139, -2.964, -2.650, -2.500, -2.172, 
+//     -2.043, -1.830, -1.653, -1.479, -1.305, 
+//     -1.218, -1.131, -1.044, -0.957, -0.879, -0.783, -0.696, -0.609, -0.522, 
+//     -0.435, -0.261, -0.174, -0.087, 
+//     +0.000, 
+//     +0.087, +0.174, +0.261, +0.435, +0.522, +0.609, +0.696, +0.783,
+//     +0.879, +0.957, +1.044, +1.131, +1.218, +1.305, +1.479, 
+//     +1.653, +1.830, +2.043, +2.172, +2.500, +2.650, 
+//     +2.964, +3.139, +3.314, +3.489, +3.839, 
+//     +4.363, +5.191
+// };
+
+const Int_t neta_bins = 26;
+const Float_t eta_bins[] = {
+    -5.191, -4.889, -4.538, -3.139,   
+    -2.964, -2.650,
+    -2.500, -2.172, -1.740, 
+    -1.305, -1.044, -0.696, -0.348,
+    +0.000, 
+    +0.348, +0.696, +1.044, +1.305,
+    +1.740, +2.172, +2.500,
+    +2.650, +2.964,
+    +3.139, +4.538, +4.889, +5.191
 };
+
+// const Int_t neta_bins = 82;
+// const Float_t eta_bins[] = {
+//     -5.191, -4.889, -4.716, -4.538, -4.363, -4.191, -4.013, -3.839, -3.664, 
+//     -3.489, -3.314, -3.139, -2.964, -2.853, -2.650, -2.500, -2.322, -2.172, 
+//     -2.043, -1.930, -1.830, -1.740, -1.653, -1.566, -1.479, -1.392, -1.305, 
+//     -1.218, -1.131, -1.044, -0.957, -0.879, -0.783, -0.696, -0.609, -0.522, 
+//     -0.435, -0.348, -0.261, -0.174, -0.087, 
+//     +0.000, 
+//     +0.087, +0.174, +0.261, +0.348, +0.435, +0.522, +0.609, +0.696, +0.783, 
+//     +0.879, +0.957, +1.044, +1.131, +1.218, +1.305, +1.392, +1.479, +1.566, 
+//     +1.653, +1.740, +1.830, +1.930, +2.043, +2.172, +2.322, +2.500, +2.650, 
+//     +2.853, +2.964, +3.139, +3.314, +3.489, +3.664, +3.839, +4.013, +4.191, 
+//     +4.363, +4.538, +4.716, +4.889, +5.191
+// };
+
+const Int_t neta_bins_s = 82;
+const Float_t eta_bins_s[] = {
+    -5.191, -4.889, -4.716, -4.538, -4.363, -4.191, -4.013, -3.839, -3.664, 
+    -3.489, -3.314, -3.139, -2.964, -2.853, -2.650, -2.500, -2.322, -2.172, 
+    -2.043, -1.930, -1.830, -1.740, -1.653, -1.566, -1.479, -1.392, -1.305, 
+    -1.218, -1.131, -1.044, -0.957, -0.879, -0.783, -0.696, -0.609, -0.522, 
+    -0.435, -0.348, -0.261, -0.174, -0.087, 
+    +0.000, 
+    +0.087, +0.174, +0.261, +0.348, +0.435, +0.522, +0.609, +0.696, +0.783, 
+    +0.879, +0.957, +1.044, +1.131, +1.218, +1.305, +1.392, +1.479, +1.566, 
+    +1.653, +1.740, +1.830, +1.930, +2.043, +2.172, +2.322, +2.500, +2.650, 
+    +2.853, +2.964, +3.139, +3.314, +3.489, +3.664, +3.839, +4.013, +4.191, 
+    +4.363, +4.538, +4.716, +4.889, +5.191
+};
+
 
 void plot_from_jra(TString input_file="", TString output_file="jet_kinematics.root")
 {
@@ -28,9 +114,9 @@ void plot_from_jra(TString input_file="", TString output_file="jet_kinematics.ro
 
     // Read JECs
     std::vector<std::string> jec_files;
-    // jec_files.push_back("/u/user/lidakal/UPC2023/CMSSW_13_2_15/src/PhysicsJetEnergyCorrection/MCTruthStudies/21153_ParallelizationWithCondor/FilesStdPlusGaus_beamAPlusB_test_config/ParallelMC_L2Relative_AK4PF.txt");
-    // jec_files.push_back("/u/user/lidakal/UPC2023/CMSSW_13_2_15/src/PhysicsJetEnergyCorrection/MCTruthStudies/21153_ParallelizationWithCondor/FilesStdPlusGaus/ParallelMC_L2Relative_AK4PF.txt");
-    // jec_files.push_back("/u/user/lidakal/UPC2023/CMSSW_13_2_15/src/PhysicsJetEnergyCorrection/MCTruthStudies/21153_ParallelizationWithCondor/FilesStd/ParallelMC_L2Relative_AK4PF.txt");
+    // jec_files.push_back("/u/user/lidakal/UPC2023/CMSSW_13_2_15/src/PhysicsJetEnergyCorrection/MCTruthStudies/21153_ParallelizationWithCondor/FilesStdPlusGaus_beamAPlusB_Pthat0_26EtaBins/ParallelMC_L2Relative_AK4PF.txt");
+    // jec_files.push_back("/u/user/lidakal/UPC2023/CMSSW_13_2_15/src/PhysicsJetEnergyCorrection/MCTruthStudies/21153_ParallelizationWithCondor/FilesStd_beamAPlusB_Pthat0_26EtaBins/ParallelMC_L2Relative_AK4PF.txt");
+    // jec_files.push_back("/u/user/lidakal/UPC2023/CMSSW_13_2_15/src/PhysicsJetEnergyCorrection/MCTruthStudies/21153_ParallelizationWithCondor/FilesErfXGaus_beamAPlusB_Pthat0_26EtaBins/ParallelMC_L2Relative_AK4PF.txt");
     jec_files.push_back("txt_files/L2L3_ppReco_2023ppRef/ParallelMC_L2Relative_AK4PF_pp_Reco_v0_12-21-2023.txt");
     std::cout << "Reading JEC from " << jec_files[0] << std::endl;
     JetCorrector JEC(jec_files);
@@ -43,12 +129,12 @@ void plot_from_jra(TString input_file="", TString output_file="jet_kinematics.ro
     }
     else {
         // Read from multiple files
-        TString base_dir = "/u/user/lidakal/SE_UserHome/GNucleus-QCD_Pthat5_5p36TeV_pythia8/crab_GNucleus-QCD_Pthat5_5p36TeV_pythia8_JRA_v3/260216_050450/";
+        // TString base_dir = "/u/user/lidakal/SE_UserHome/GNucleus-QCD_Pthat5_5p36TeV_pythia8/crab_GNucleus-QCD_Pthat5_5p36TeV_pythia8_JRA_v3/260216_050450/";
         // TString base_dir = "/u/user/lidakal/SE_UserHome/GNucleus-QCD-PhotonBeamB_Pthat0_UPC_5p36TeV_pythia8/crab_GNucleus-QCD-PhotonBeamB_Pthat0_UPC_5p36TeV_pythia8_JRA_v2/260217_091009/";
-        // TString base_dir = "/u/user/lidakal/SE_UserHome/GNucleus-QCD-PhotonBeamA_Pthat0_UPC_5p36TeV_pythia8/crab_GNucleus-QCD-PhotonBeamA_Pthat0_UPC_5p36TeV_pythia8_JRA/260217_090747/";
+        TString base_dir = "/u/user/lidakal/SE_UserHome/GNucleus-QCD-PhotonBeamA_Pthat0_UPC_5p36TeV_pythia8/crab_GNucleus-QCD-PhotonBeamA_Pthat0_UPC_5p36TeV_pythia8_JRA/260217_090747/";
         // TString base_dir = "/u/user/lidakal/SE_UserHome/HIForward0/crab_HiForward0_HIRun2023A-PromptReco-v2_ZDCjson_v7/260216_070726/";
         std::cout << "Adding files from " << base_dir << std::endl;
-        tree->Add(base_dir+"/0000/*.root");
+        tree->Add(base_dir+"/0000/JRA_1.root");
     }
 
     Long64_t nentries = tree->GetEntries();
@@ -89,6 +175,9 @@ void plot_from_jra(TString input_file="", TString output_file="jet_kinematics.ro
     TH3F *h_jes_w_jec_vs_refpt_vs_jteta = new TH3F("h_jes_w_jec_vs_refpt_vs_jteta", "jes_w_jec_vs_refpt_vs_jteta", nrefpt_bins, refpt_bins, njes_bins, jes_bins, neta_bins, eta_bins);
     TH3F *h_jes_vs_refpt_vs_jteta = new TH3F("h_jes_vs_refpt_vs_jteta", "jes_vs_refpt_vs_jteta", nrefpt_bins, refpt_bins, njes_bins, jes_bins, neta_bins, eta_bins);
 
+    TH3F *h_jes_w_jec_vs_refpt_vs_jteta_s = new TH3F("h_jes_w_jec_vs_refpt_vs_jteta_s", "jes_w_jec_vs_refpt_vs_jteta_s", nrefpt_bins, refpt_bins, njes_bins, jes_bins, neta_bins_s, eta_bins_s);
+    TH3F *h_jes_vs_refpt_vs_jteta_s = new TH3F("h_jes_vs_refpt_vs_jteta_s", "jes_vs_refpt_vs_jteta_s", nrefpt_bins, refpt_bins, njes_bins, jes_bins, neta_bins_s, eta_bins_s);
+
     for (Long64_t ient = 0; ient < nentries; ient++) {
         // if (ient > 10) break;
         if (ient % 100000 == 0)
@@ -101,15 +190,21 @@ void plot_from_jra(TString input_file="", TString output_file="jet_kinematics.ro
             h_jteta->Fill(jteta->at(ijet), weight);
             h_jtphi->Fill(jtphi->at(ijet), weight);
             h_rawpt_vs_refpt->Fill(refpt->at(ijet), jtpt->at(ijet), weight);
-            if (refpt->at(ijet) > 0) h_jes_vs_refpt_vs_jteta->Fill(refpt->at(ijet), jtpt->at(ijet)/refpt->at(ijet), jteta->at(ijet), weight);
-            
+            if (refpt->at(ijet) > 0) {
+                h_jes_vs_refpt_vs_jteta->Fill(refpt->at(ijet), jtpt->at(ijet)/refpt->at(ijet), jteta->at(ijet), weight);
+                h_jes_vs_refpt_vs_jteta_s->Fill(refpt->at(ijet), jtpt->at(ijet)/refpt->at(ijet), jteta->at(ijet), weight);
+            }
+
             JEC.SetJetPT(jtpt->at(ijet));
             JEC.SetJetEta(jteta->at(ijet));
             JEC.SetJetPhi(jtphi->at(ijet));
             float jet_pt_corr = JEC.GetCorrectedPT();
             h_jtpt_w_jec->Fill(jet_pt_corr, weight);
             h_jtpt_w_jec_vs_refpt->Fill(refpt->at(ijet), jet_pt_corr, weight);
-            if (refpt->at(ijet) > 0) h_jes_w_jec_vs_refpt_vs_jteta->Fill(refpt->at(ijet), jet_pt_corr/refpt->at(ijet), jteta->at(ijet), weight);
+            if (refpt->at(ijet) > 0) {
+                h_jes_w_jec_vs_refpt_vs_jteta->Fill(refpt->at(ijet), jet_pt_corr/refpt->at(ijet), jteta->at(ijet), weight);
+                h_jes_w_jec_vs_refpt_vs_jteta_s->Fill(refpt->at(ijet), jet_pt_corr/refpt->at(ijet), jteta->at(ijet), weight);
+            }
         }
     } // entries loop
 
@@ -121,6 +216,8 @@ void plot_from_jra(TString input_file="", TString output_file="jet_kinematics.ro
     h_jtpt_w_jec_vs_refpt->Write();
     h_jes_w_jec_vs_refpt_vs_jteta->Write();
     h_jes_vs_refpt_vs_jteta->Write();
+    h_jes_w_jec_vs_refpt_vs_jteta_s->Write();
+    h_jes_vs_refpt_vs_jteta_s->Write();
 
     fout->Close();
     delete fout;

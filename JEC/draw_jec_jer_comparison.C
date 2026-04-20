@@ -30,21 +30,31 @@ void formatGraph(TGraph *gr, TString xlabel, TString ylabel, Int_t color)
     gr->GetYaxis()->SetTitleSize(28);
     gr->GetYaxis()->SetTitleOffset(1.7);
     gr->GetYaxis()->SetLabelSize(22);
-    if (ylabel.Contains("JES")) gr->GetYaxis()->SetRangeUser(0.9, 1.4);
-    else if (ylabel.Contains("JER")) gr->GetYaxis()->SetRangeUser(0, 0.8);
+    if (ylabel.Contains("JES")) gr->GetYaxis()->SetRangeUser(0.8, 1.4);
+    else if (ylabel.Contains("JER")) gr->GetYaxis()->SetRangeUser(0, 1.0);
+
+    // use this for no JEC and vs refpt for std+gaus
+    // if (ylabel.Contains("JES")) gr->GetYaxis()->SetRangeUser(0., 2.);
+    // else if (ylabel.Contains("JER")) gr->GetYaxis()->SetRangeUser(0, 1.0);
+
+    if (xlabel.Contains("p_{T}^{ref}")) gr->GetXaxis()->SetRangeUser(5, 50);
+    else if (xlabel.Contains("#eta")) gr->GetXaxis()->SetRangeUser(-5.2, 5.2);
 
     gr->SetLineWidth(4);
     gr->SetLineColor(color);
     gr->SetMarkerColor(color);
 }
 
-void get_jes_jer_vs_refpt(TH2F *h, TGraph *jes, TGraph *jer)
+std::pair<TGraph *, TGraph *> get_jes_jer_vs_refpt(TH2F *h)
 {
     // Expecting h with x=refpt, y=jtpt/refpt within a given jteta range
     std::cout << "Calculating JES and JER vs refpt from " << h->GetName() << std::endl;
     int nX = h->GetNbinsX();
+    TGraph *jes = new TGraph();
+    TGraph *jer = new TGraph();
 
     // for each refpt, fit the jtpt/refpt distribution
+    int iN = 0;
     for (int ix = 1; ix <= nX; ix++) {
         TH1F *proj = (TH1F *) h->ProjectionY(Form("proj_%d", ix), ix, ix);
 
@@ -68,23 +78,29 @@ void get_jes_jer_vs_refpt(TH2F *h, TGraph *jes, TGraph *jer)
 
         // std::cout << mean << " +/- " << sigma << std::endl;
 
-        jes->SetPoint(ix-1, h->GetXaxis()->GetBinCenter(ix), mean);
-        jer->SetPoint(ix-1, h->GetXaxis()->GetBinCenter(ix), sigma);
+        jes->SetPoint(iN, h->GetXaxis()->GetBinCenter(ix), mean);
+        jer->SetPoint(iN, h->GetXaxis()->GetBinCenter(ix), sigma);
+        iN++;
 
+        delete fit;
         delete proj;
     }
+
+    return std::pair<TGraph *, TGraph *>(jes, jer);
 }
 
-void get_jes_jer_vs_jteta(TH2F *h, TGraph *jes, TGraph *jer)
+std::pair<TGraph *, TGraph *> get_jes_jer_vs_jteta(TH2F *h)
 {
     // Expecting h with x=jteta, y=jtpt/refpt within a given refpt range
     std::cout << "Calculating JES and JER vs jteta from " << h->GetName() << std::endl;
     int nX = h->GetNbinsX();
+    TGraph *jes = new TGraph();
+    TGraph *jer = new TGraph();
 
     // for each jteta, fit the jtpt/refpt distribution
+    int iN = 0;
     for (int ix = 1; ix <= nX; ix++) {
         TH1F *proj = (TH1F *) h->ProjectionY(Form("proj_%d", ix), ix, ix);
-
         // avoid empty jteta bins
         if (proj->GetEntries() < 20) {
             std::cout << "Skipping jteta bin " << h->GetXaxis()->GetBinCenter(ix) << " due to low statistics (" << proj->GetEntries() << " entries)" << std::endl;
@@ -103,356 +119,270 @@ void get_jes_jer_vs_jteta(TH2F *h, TGraph *jes, TGraph *jer)
         double mean  = fit->GetParameter(1);
         double sigma = fit->GetParameter(2);
 
-        // std::cout << mean << " +/- " << sigma << std::endl;
+        if (sigma < 0.1)
+            std::cout << "bin " << h->GetXaxis()->GetBinCenter(ix) << ": " << mean << " +/- " << sigma << std::endl;
 
-        jes->SetPoint(ix-1, h->GetXaxis()->GetBinCenter(ix), mean);
-        jer->SetPoint(ix-1, h->GetXaxis()->GetBinCenter(ix), sigma);
+        jes->SetPoint(iN, h->GetXaxis()->GetBinCenter(ix), mean);
+        jer->SetPoint(iN, h->GetXaxis()->GetBinCenter(ix), sigma);
+        iN++;
 
+        delete fit;
         delete proj;
     }
+
+    return std::pair<TGraph *, TGraph *>(jes, jer);
 }
 
 void draw_jec_jer_comparison()
 {
     gStyle->SetErrorX(0.5);
-    TString suffix = "stdPlusGaus82EtaBinsJEC";
+    TString nbins = "26";
+    TString algo = "erfXGaus";
+    TString suffix = algo+nbins+"EtaBinsJEC";
+    TString fin_name = "histos/beamAPlusB_pthat0_"+suffix+"_kinematics.root";
 
     // Load files
-    TFile *f_ppJEC = new TFile("histos/beamAPlusB_pthat0_ppJEC_kinematics.root");
-    TH3F *h_jes_vs_refpt_vs_jteta_ppJEC = (TH3F *) f_ppJEC->Get("h_jes_w_jec_vs_refpt_vs_jteta")->Clone("h_jes_vs_refpt_vs_jteta_ppJEC");
-    TH3F *h_jes_vs_refpt_vs_jteta_noJEC = (TH3F *) f_ppJEC->Get("h_jes_vs_refpt_vs_jteta")->Clone("h_jes_vs_refpt_vs_jteta_noJEC");
+    TFile *fin = new TFile(fin_name);
+    TH3F *h_jes_vs_refpt_vs_jteta_wJEC = (TH3F *) fin->Get("h_jes_w_jec_vs_refpt_vs_jteta")->Clone("h_jes_vs_refpt_vs_jteta_wJEC"); // custom bins
+    TH3F *h_jes_vs_refpt_vs_jteta_s_wJEC = (TH3F *) fin->Get("h_jes_w_jec_vs_refpt_vs_jteta_s")->Clone("h_jes_vs_refpt_vs_jteta_s_wJEC"); // original bins
+    TH3F *h_jes_vs_refpt_vs_jteta_noJEC = (TH3F *) fin->Get("h_jes_vs_refpt_vs_jteta")->Clone("h_jes_vs_refpt_vs_jteta_noJEC"); // custom bins
+    TH3F *h_jes_vs_refpt_vs_jteta_s_noJEC = (TH3F *) fin->Get("h_jes_vs_refpt_vs_jteta_s")->Clone("h_jes_vs_refpt_vs_jteta_s_noJEC"); // original bins
 
-    TFile *f_stdPlusGausJEC = new TFile("histos/beamAPlusB_pthat0_"+suffix+"_kinematics.root");
-    TH3F *h_jes_vs_refpt_vs_jteta_stdPlusGausJEC = (TH3F *) f_stdPlusGausJEC->Get("h_jes_w_jec_vs_refpt_vs_jteta")->Clone("h_jes_vs_refpt_vs_jteta_stdPlusGausJEC");
+    std::vector<TH3F *> h_jes_vs_refpt_vs_jteta_vec = {
+        h_jes_vs_refpt_vs_jteta_wJEC, 
+        h_jes_vs_refpt_vs_jteta_s_wJEC,
+        h_jes_vs_refpt_vs_jteta_noJEC,
+        h_jes_vs_refpt_vs_jteta_s_noJEC
+    };
+    std::vector<TString> labels = {
+        algo+nbins+"EtaBins",
+        algo+"82EtaBins",
+        "noJEC"+nbins+"EtaBins",
+        "noJEC82EtaBins",
+    };
 
-    std::vector<TH3F *> h_jes_vs_refpt_vs_jteta_vec = {h_jes_vs_refpt_vs_jteta_noJEC, h_jes_vs_refpt_vs_jteta_ppJEC, h_jes_vs_refpt_vs_jteta_stdPlusGausJEC};
-    size_t ncor = h_jes_vs_refpt_vs_jteta_vec.size();
+    size_t nhist = h_jes_vs_refpt_vs_jteta_vec.size();
 
-    // ----- DRAW BY ETA REGIONS -----
+    // --------------------------------------//
+    //                                       //
+    //           DRAW BY JTETA               //
+    //                                       //
+    // --------------------------------------//
 
-    // Barrel region : |jteta|<1.3
-    TH2F    *h_jes_vs_refpt_noJEC_BB = new TH2F(), 
-            *h_jes_vs_refpt_ppJEC_BB = new TH2F(), 
-            *h_jes_vs_refpt_stdPlusGausJEC_BB = new TH2F();
-    TGraph  *jes_noJEC_BB = new TGraph(), 
-            *jes_ppJEC_BB = new TGraph(), 
-            *jes_stdPlusGausJEC_BB = new TGraph();
-    TGraph  *jer_noJEC_BB = new TGraph(), 
-            *jer_ppJEC_BB = new TGraph(), 
-            *jer_stdPlusGausJEC_BB = new TGraph();
-    std::vector<TH2F *>     h_jes_vs_refpt_BB_vec       = {h_jes_vs_refpt_noJEC_BB, h_jes_vs_refpt_ppJEC_BB, h_jes_vs_refpt_stdPlusGausJEC_BB};
-    std::vector<TGraph *>   jes_BB_vec                  = {jes_noJEC_BB, jes_ppJEC_BB, jes_stdPlusGausJEC_BB};
-    std::vector<TGraph *>   jer_BB_vec                  = {jer_noJEC_BB, jer_ppJEC_BB, jer_stdPlusGausJEC_BB};
-    for (size_t i = 0; i < ncor; ++i) {
+    // Barrel region : |jteta|<1.3;
+   double lim = 1.305;
+    std::vector<std::pair<TGraph *, TGraph *>> jes_jer_BB_vec;
+    for (size_t i = 0; i < nhist; ++i) {
         TH3F *h3d = h_jes_vs_refpt_vs_jteta_vec[i];
-        TH2F *h2d = (TH2F *) h_jes_vs_refpt_BB_vec[i];
-        TGraph *jes = jes_BB_vec[i];
-        TGraph *jer = jer_BB_vec[i];
-        h3d->GetZaxis()->SetRange(h3d->GetZaxis()->FindBin(-1.3), h3d->GetZaxis()->FindBin(1.3));
-        std::cout << "bin " << h3d->GetZaxis()->FindBin(-1.3) << " to " << h3d->GetZaxis()->FindBin(1.3) << std::endl;
-        std::cout << "eta " << h3d->GetZaxis()->GetBinLowEdge(h3d->GetZaxis()->FindBin(-1.3)) << " to " << h3d->GetZaxis()->GetBinUpEdge(h3d->GetZaxis()->FindBin(1.3)) << std::endl;
-        h2d = (TH2F *) h3d->Project3D("BB_yx");
+        h3d->GetZaxis()->SetRange(h3d->GetZaxis()->FindBin(-lim), h3d->GetZaxis()->FindBin(+lim-(1e-2)));
+        TH2F *h2d = (TH2F *) h3d->Project3D("BB_yx");
         h3d->GetZaxis()->SetRange(); // reset range
-        get_jes_jer_vs_refpt(h2d, jes, jer);
+        jes_jer_BB_vec.push_back(get_jes_jer_vs_refpt(h2d));
     }
     
     // Endcap with tracker : 1.3 < |jteta| < 2.5
-    TH2F    *h_jes_vs_refpt_noJEC_EC1 = new TH2F(), 
-            *h_jes_vs_refpt_ppJEC_EC1 = new TH2F(), 
-            *h_jes_vs_refpt_stdPlusGausJEC_EC1 = new TH2F();
-    TGraph  *jes_noJEC_EC1 = new TGraph(), 
-            *jes_ppJEC_EC1 = new TGraph(), 
-            *jes_stdPlusGausJEC_EC1 = new TGraph();
-    TGraph  *jer_noJEC_EC1 = new TGraph(), 
-            *jer_ppJEC_EC1 = new TGraph(), 
-            *jer_stdPlusGausJEC_EC1 = new TGraph();
-    std::vector<TH2F *>     h_jes_vs_refpt_EC1_vec  = { h_jes_vs_refpt_noJEC_EC1, 
-                                                        h_jes_vs_refpt_ppJEC_EC1, 
-                                                        h_jes_vs_refpt_stdPlusGausJEC_EC1};
-    std::vector<TGraph *>   jes_EC1_vec             = { jes_noJEC_EC1, 
-                                                        jes_ppJEC_EC1, 
-                                                        jes_stdPlusGausJEC_EC1};
-    std::vector<TGraph *>   jer_EC1_vec             = { jer_noJEC_EC1,  
-                                                        jer_ppJEC_EC1, 
-                                                        jer_stdPlusGausJEC_EC1};
-    for (size_t i = 0; i < ncor; ++i) {
+    double lim1 = 1.305, lim2 = 2.5;
+    std::vector<std::pair<TGraph *, TGraph *>> jes_jer_EC1_vec;
+    for (size_t i = 0; i < nhist; ++i) {
         TH3F *h3d = h_jes_vs_refpt_vs_jteta_vec[i];
-        TH2F *h2d = (TH2F *) h_jes_vs_refpt_EC1_vec[i];
-        TGraph *jes = jes_EC1_vec[i];
-        TGraph *jer = jer_EC1_vec[i];
-        h3d->GetZaxis()->SetRange(h3d->GetZaxis()->FindBin(-2.5), h3d->GetZaxis()->FindBin(-1.3));
-        h2d = (TH2F *) h3d->Project3D("C1_yx");
+        h3d->GetZaxis()->SetRange(h3d->GetZaxis()->FindBin(-lim2), h3d->GetZaxis()->FindBin(-lim1-(1e-2)));
+        TH2F *h2d = (TH2F *) h3d->Project3D("C1_yx");
         h3d->GetZaxis()->SetRange(); // reset range
-        h3d->GetZaxis()->SetRange(h3d->GetZaxis()->FindBin(1.3), h3d->GetZaxis()->FindBin(2.5));
+        h3d->GetZaxis()->SetRange(h3d->GetZaxis()->FindBin(lim1), h3d->GetZaxis()->FindBin(lim2-(1e-2)));
         h2d->Add((TH2F *) h3d->Project3D("C1_2_yx"));
         h3d->GetZaxis()->SetRange(); // reset range
-        get_jes_jer_vs_refpt(h2d, jes, jer);
+        jes_jer_EC1_vec.push_back(get_jes_jer_vs_refpt(h2d));
     }
 
     // Endcap without tracker : 2.5 < |jteta| < 3.0
-    TH2F    *h_jes_vs_refpt_noJEC_EC2 = new TH2F(), *h_jes_vs_refpt_ppJEC_EC2 = new TH2F(), *h_jes_vs_refpt_stdPlusGausJEC_EC2 = new TH2F();
-    TGraph  *jes_noJEC_EC2 = new TGraph(), *jes_ppJEC_EC2 = new TGraph(), *jes_stdPlusGausJEC_EC2 = new TGraph();
-    TGraph  *jer_noJEC_EC2 = new TGraph(), *jer_ppJEC_EC2 = new TGraph(), *jer_stdPlusGausJEC_EC2 = new TGraph();
-    std::vector<TH2F *>     h_jes_vs_refpt_EC2_vec       = {h_jes_vs_refpt_noJEC_EC2, h_jes_vs_refpt_ppJEC_EC2, h_jes_vs_refpt_stdPlusGausJEC_EC2};
-    std::vector<TGraph *>   jes_EC2_vec                  = {jes_noJEC_EC2, jes_ppJEC_EC2, jes_stdPlusGausJEC_EC2};
-    std::vector<TGraph *>   jer_EC2_vec                  = {jer_noJEC_EC2, jer_ppJEC_EC2, jer_stdPlusGausJEC_EC2};
-    for (size_t i = 0; i < ncor; ++i) {
+    lim1 = 2.5; lim2 = 2.964;
+    std::vector<std::pair<TGraph *, TGraph *>> jes_jer_EC2_vec;
+    for (size_t i = 0; i < nhist; ++i) {
         TH3F *h3d = h_jes_vs_refpt_vs_jteta_vec[i];
-        TH2F *h2d = (TH2F *) h_jes_vs_refpt_EC2_vec[i];
-        TGraph *jes = jes_EC2_vec[i];
-        TGraph *jer = jer_EC2_vec[i];
-        h3d->GetZaxis()->SetRange(h3d->GetZaxis()->FindBin(-3.0), h3d->GetZaxis()->FindBin(-2.5));
-        h2d = (TH2F *) h3d->Project3D("C2_yx");
+        h3d->GetZaxis()->SetRange(h3d->GetZaxis()->FindBin(-lim2), h3d->GetZaxis()->FindBin(-lim1-(1e-2)));
+        TH2F *h2d = (TH2F *) h3d->Project3D("C2_yx");
         h3d->GetZaxis()->SetRange(); // reset range
-        h3d->GetZaxis()->SetRange(h3d->GetZaxis()->FindBin(2.5), h3d->GetZaxis()->FindBin(3.0));
+        h3d->GetZaxis()->SetRange(h3d->GetZaxis()->FindBin(lim1), h3d->GetZaxis()->FindBin(lim2-(1e-2)));
         h2d->Add((TH2F *) h3d->Project3D("C2_2_yx"));
         h3d->GetZaxis()->SetRange(); // reset range
-        get_jes_jer_vs_refpt(h2d, jes, jer);
+        jes_jer_EC2_vec.push_back(get_jes_jer_vs_refpt(h2d));
     }
 
     // Forward : 3.0 < |jteta| < 5.2
-    TH2F    *h_jes_vs_refpt_noJEC_HF = new TH2F(), *h_jes_vs_refpt_ppJEC_HF = new TH2F(), *h_jes_vs_refpt_stdPlusGausJEC_HF = new TH2F();
-    TGraph  *jes_noJEC_HF = new TGraph(), *jes_ppJEC_HF = new TGraph(), *jes_stdPlusGausJEC_HF = new TGraph();
-    TGraph  *jer_noJEC_HF = new TGraph(), *jer_ppJEC_HF = new TGraph(), *jer_stdPlusGausJEC_HF = new TGraph();
-    std::vector<TH2F *>     h_jes_vs_refpt_HF_vec       = {h_jes_vs_refpt_noJEC_HF, h_jes_vs_refpt_ppJEC_HF, h_jes_vs_refpt_stdPlusGausJEC_HF};
-    std::vector<TGraph *>   jes_HF_vec                  = {jes_noJEC_HF, jes_ppJEC_HF, jes_stdPlusGausJEC_HF};
-    std::vector<TGraph *>   jer_HF_vec                  = {jer_noJEC_HF, jer_ppJEC_HF, jer_stdPlusGausJEC_HF};
-    for (size_t i = 0; i < ncor; ++i) {
+    lim1 = 2.964; lim2 = 5.191;
+    std::vector<std::pair<TGraph *, TGraph *>> jes_jer_HF_vec;
+    for (size_t i = 0; i < nhist; ++i) {
         TH3F *h3d = h_jes_vs_refpt_vs_jteta_vec[i];
-        TH2F *h2d = (TH2F *) h_jes_vs_refpt_HF_vec[i];
-        TGraph *jes = jes_HF_vec[i];
-        TGraph *jer = jer_HF_vec[i];
-        h3d->GetZaxis()->SetRange(h3d->GetZaxis()->FindBin(-5.2), h3d->GetZaxis()->FindBin(-3.0));
-        h2d = (TH2F *) h3d->Project3D("HF_yx");
+        h3d->GetZaxis()->SetRange(h3d->GetZaxis()->FindBin(-lim2), h3d->GetZaxis()->FindBin(-lim1-(1e-2)));
+        TH2F *h2d = (TH2F *) h3d->Project3D("HF_yx");
         h3d->GetZaxis()->SetRange(); // reset range
-        h3d->GetZaxis()->SetRange(h3d->GetZaxis()->FindBin(3.0), h3d->GetZaxis()->FindBin(5.2));
+        h3d->GetZaxis()->SetRange(h3d->GetZaxis()->FindBin(lim1), h3d->GetZaxis()->FindBin(lim2-(1e-2)));
         h2d->Add((TH2F *) h3d->Project3D("HF_2_yx"));
         h3d->GetZaxis()->SetRange(); // reset range
-        get_jes_jer_vs_refpt(h2d, jes, jer);
+        jes_jer_HF_vec.push_back(get_jes_jer_vs_refpt(h2d));
     }
 
-    // Draw JES vs refpt
-    TCanvas *c_jes = new TCanvas("c_jes", "", 700, 600);
-    jes_stdPlusGausJEC_BB->Draw("APZ");
-    jes_stdPlusGausJEC_EC1->Draw("P same");
-    jes_stdPlusGausJEC_EC2->Draw("P same");
-    jes_stdPlusGausJEC_HF->Draw("P same");
+    for (size_t i = 0; i < nhist; ++i) {
+        // Draw JES vs refpt
+        TString label = "jes_vs_refpt_per_eta_" + labels[i];
+        TCanvas *c_jes = new TCanvas(label, "", 700, 600);
+        jes_jer_BB_vec[i].first->Draw("APZ");
+        jes_jer_EC1_vec[i].first->Draw("P same");
+        jes_jer_EC2_vec[i].first->Draw("P same");
+        jes_jer_HF_vec[i].first->Draw("P same");
 
-    formatCanvas(c_jes);
-    formatGraph(jes_stdPlusGausJEC_BB, "p_{T}^{ref} (GeV)", "JES", cmsBlue);
-    formatGraph(jes_stdPlusGausJEC_EC1, "p_{T}^{ref} (GeV)", "JES", cmsRed);
-    formatGraph(jes_stdPlusGausJEC_EC2, "p_{T}^{ref} (GeV)", "JES", cmsOrange);
-    formatGraph(jes_stdPlusGausJEC_HF, "p_{T}^{ref} (GeV)", "JES", cmsViolet);
-    drawHeader();
+        formatCanvas(c_jes);
+        formatGraph(jes_jer_BB_vec[i].first, "p_{T}^{ref} (GeV)", "JES", cmsBlue);
+        formatGraph(jes_jer_EC1_vec[i].first, "p_{T}^{ref} (GeV)", "JES", cmsRed);
+        formatGraph(jes_jer_EC2_vec[i].first, "p_{T}^{ref} (GeV)", "JES", cmsOrange);
+        formatGraph(jes_jer_HF_vec[i].first, "p_{T}^{ref} (GeV)", "JES", cmsViolet);
+        drawHeader();
 
-    TLegend *leg_per_eta = new TLegend(0.6, 0.6, 0.88, 0.8);
-    leg_per_eta->SetBorderSize(0);
-    leg_per_eta->SetTextSize(22);
-    leg_per_eta->AddEntry(jes_stdPlusGausJEC_BB, "0.0 < |#eta| < 1.3", "pl");
-    leg_per_eta->AddEntry(jes_stdPlusGausJEC_EC1, "1.3 < |#eta| < 2.5", "pl");
-    leg_per_eta->AddEntry(jes_stdPlusGausJEC_EC2, "2.5 < |#eta| < 3.0", "pl");
-    leg_per_eta->AddEntry(jes_stdPlusGausJEC_HF, "3.0 < |#eta| < 5.2", "pl");
-    leg_per_eta->Draw();
+        TLegend *leg_per_eta = new TLegend(0.25, 0.7, 0.9, 0.85);
+        leg_per_eta->SetBorderSize(0);
+        leg_per_eta->SetFillStyle(0);
+        leg_per_eta->SetTextSize(22);
+        leg_per_eta->SetNColumns(2);
+        leg_per_eta->AddEntry(jes_jer_BB_vec[i].first, "0.0 < |#eta| < 1.305", "pl");
+        leg_per_eta->AddEntry(jes_jer_EC1_vec[i].first, "1.305 < |#eta| < 2.5", "pl");
+        leg_per_eta->AddEntry(jes_jer_EC2_vec[i].first, "2.5 < |#eta| < 2.964", "pl");
+        leg_per_eta->AddEntry(jes_jer_HF_vec[i].first, "2.964 < |#eta| < 5.191", "pl");
+        leg_per_eta->Draw();
 
-    c_jes->Print("plots/jes_vs_refpt_per_eta_" + suffix + ".png");
+        c_jes->Print("plots/"+label+".png");
 
-    // Draw JER vs refpt
-    TCanvas *c_jer = new TCanvas("c_jer", "", 700, 600);
-    jer_stdPlusGausJEC_BB->Draw("APZ");  
-    jer_stdPlusGausJEC_EC1->Draw("P same");
-    jer_stdPlusGausJEC_EC2->Draw("P same");
-    jer_stdPlusGausJEC_HF->Draw("P same");
+        // Draw JER vs refpt
+        label = "jer_vs_refpt_per_eta_" + labels[i];
+        TCanvas *c_jer = new TCanvas(label, "", 700, 600);
+        jes_jer_BB_vec[i].second->Draw("APZ");
+        jes_jer_EC1_vec[i].second->Draw("P same");
+        jes_jer_EC2_vec[i].second->Draw("P same");
+        jes_jer_HF_vec[i].second->Draw("P same");
 
-    formatCanvas(c_jer);
-    formatGraph(jer_stdPlusGausJEC_BB, "p_{T}^{ref} (GeV)", "JER", cmsBlue);
-    formatGraph(jer_stdPlusGausJEC_EC1, "p_{T}^{ref} (GeV)", "JER", cmsRed);
-    formatGraph(jer_stdPlusGausJEC_EC2, "p_{T}^{ref} (GeV)", "JER", cmsOrange);
-    formatGraph(jer_stdPlusGausJEC_HF, "p_{T}^{ref} (GeV)", "JER", cmsViolet);
-    drawHeader();
-    leg_per_eta->Draw();
+        formatCanvas(c_jer);
+        formatGraph(jes_jer_BB_vec[i].second, "p_{T}^{ref} (GeV)", "JER", cmsBlue);
+        formatGraph(jes_jer_EC1_vec[i].second, "p_{T}^{ref} (GeV)", "JER", cmsRed);
+        formatGraph(jes_jer_EC2_vec[i].second, "p_{T}^{ref} (GeV)", "JER", cmsOrange);
+        formatGraph(jes_jer_HF_vec[i].second, "p_{T}^{ref} (GeV)", "JER", cmsViolet);
+        drawHeader();
 
-    c_jer->Print("plots/jer_vs_refpt_per_eta_" + suffix + ".png");
+        leg_per_eta->Draw();
 
-    // --------------------------------------
+        c_jer->Print("plots/"+label+".png");
+    }
 
-    // -------- DRAW BY REFPT ---------------
+    // --------------------------------------//
+    //                                       //
+    //           DRAW BY REFPT               //
+    //                                       //
+    // --------------------------------------//
 
     // refpt in [5, 10] GeV
-    TH2F    *h_jes_vs_jteta_noJEC_ptbin1 = new TH2F(), 
-            *h_jes_vs_jteta_ppJEC_ptbin1 = new TH2F(), 
-            *h_jes_vs_jteta_stdPlusGausJEC_ptbin1 = new TH2F();
-    TGraph  *jes_noJEC_ptbin1 = new TGraph(), 
-            *jes_ppJEC_ptbin1 = new TGraph(), 
-            *jes_stdPlusGausJEC_ptbin1 = new TGraph();
-    TGraph  *jer_noJEC_ptbin1 = new TGraph(), 
-            *jer_ppJEC_ptbin1 = new TGraph(), 
-            *jer_stdPlusGausJEC_ptbin1 = new TGraph();
-    std::vector<TH2F *>     h_jes_vs_jteta_ptbin1_vec       = {h_jes_vs_jteta_noJEC_ptbin1, h_jes_vs_jteta_ppJEC_ptbin1, h_jes_vs_jteta_stdPlusGausJEC_ptbin1};
-    std::vector<TGraph *>   jes_ptbin1_vec                  = {jes_noJEC_ptbin1, jes_ppJEC_ptbin1, jes_stdPlusGausJEC_ptbin1};
-    std::vector<TGraph *>   jer_ptbin1_vec                  = {jer_noJEC_ptbin1, jer_ppJEC_ptbin1, jer_stdPlusGausJEC_ptbin1};
-    for (size_t i = 0; i < ncor; ++i) {
+    lim1 = 5; lim2 = 10;
+    std::vector<std::pair<TGraph *, TGraph *>> jes_jer_ptbin1_vec;
+    for (size_t i = 0; i < nhist; ++i) {
         TH3F *h3d = h_jes_vs_refpt_vs_jteta_vec[i];
-        TH2F *h2d = (TH2F *) h_jes_vs_jteta_ptbin1_vec[i];
-        TGraph *jes = jes_ptbin1_vec[i];
-        TGraph *jer = jer_ptbin1_vec[i];
-        h3d->GetXaxis()->SetRange(h3d->GetXaxis()->FindBin(5), h3d->GetXaxis()->FindBin(9.9));
-        std::cout << h3d->GetXaxis()->FindBin(5) << " to " << h3d->GetXaxis()->FindBin(9.9) << std::endl;
-        std::cout << h3d->GetXaxis()->GetBinLowEdge(h3d->GetXaxis()->FindBin(5)) << " to " << h3d->GetXaxis()->GetBinUpEdge(h3d->GetXaxis()->FindBin(9.9)) << std::endl;
-        h2d = (TH2F *) h3d->Project3D("ptbin1_yz");
+        h3d->GetXaxis()->SetRange(h3d->GetXaxis()->FindBin(lim1), h3d->GetXaxis()->FindBin(lim2-(1e-2)));
+        TH2F *h2d = (TH2F *) h3d->Project3D("ptbin1_yz");
         h3d->GetXaxis()->SetRange(); // reset range
-        get_jes_jer_vs_jteta(h2d, jes, jer);
+        jes_jer_ptbin1_vec.push_back(get_jes_jer_vs_jteta(h2d));
     }
 
     // refpt in [10, 15] GeV
-    TH2F    *h_jes_vs_jteta_noJEC_ptbin2 = new TH2F(), 
-            *h_jes_vs_jteta_ppJEC_ptbin2 = new TH2F(), 
-            *h_jes_vs_jteta_stdPlusGausJEC_ptbin2 = new TH2F();
-    TGraph  *jes_noJEC_ptbin2 = new TGraph(), 
-            *jes_ppJEC_ptbin2 = new TGraph(), 
-            *jes_stdPlusGausJEC_ptbin2 = new TGraph();
-    TGraph  *jer_noJEC_ptbin2 = new TGraph(), 
-            *jer_ppJEC_ptbin2 = new TGraph(), 
-            *jer_stdPlusGausJEC_ptbin2 = new TGraph();
-    std::vector<TH2F *>     h_jes_vs_jteta_ptbin2_vec       = {h_jes_vs_jteta_noJEC_ptbin2, h_jes_vs_jteta_ppJEC_ptbin2, h_jes_vs_jteta_stdPlusGausJEC_ptbin2};
-    std::vector<TGraph *>   jes_ptbin2_vec                  = {jes_noJEC_ptbin2, jes_ppJEC_ptbin2, jes_stdPlusGausJEC_ptbin2};
-    std::vector<TGraph *>   jer_ptbin2_vec                  = {jer_noJEC_ptbin2, jer_ppJEC_ptbin2, jer_stdPlusGausJEC_ptbin2};
-    for (size_t i = 0; i < ncor; ++i) {
+    lim1 = 10; lim2 = 15;
+    std::vector<std::pair<TGraph *, TGraph *>> jes_jer_ptbin2_vec;
+    for (size_t i = 0; i < nhist; ++i) {
         TH3F *h3d = h_jes_vs_refpt_vs_jteta_vec[i];
-        TH2F *h2d = (TH2F *) h_jes_vs_jteta_ptbin2_vec[i];
-        TGraph *jes = jes_ptbin2_vec[i];
-        TGraph *jer = jer_ptbin2_vec[i];
-        h3d->GetXaxis()->SetRange(h3d->GetXaxis()->FindBin(10), h3d->GetXaxis()->FindBin(14.9));
-        std::cout << h3d->GetXaxis()->FindBin(10) << " to " << h3d->GetXaxis()->FindBin(14.9) << std::endl;
-        std::cout << h3d->GetXaxis()->GetBinLowEdge(h3d->GetXaxis()->FindBin(10)) << " to " << h3d->GetXaxis()->GetBinUpEdge(h3d->GetXaxis()->FindBin(14.9)) << std::endl;
-        h2d = (TH2F *) h3d->Project3D("ptbin2_yz");
+        h3d->GetXaxis()->SetRange(h3d->GetXaxis()->FindBin(lim1), h3d->GetXaxis()->FindBin(lim2-(1e-2)));
+        TH2F *h2d = (TH2F *) h3d->Project3D("ptbin2_yz");
         h3d->GetXaxis()->SetRange(); // reset range
-        get_jes_jer_vs_jteta(h2d, jes, jer);
+        jes_jer_ptbin2_vec.push_back(get_jes_jer_vs_jteta(h2d));
     }
 
     // refpt in [15, 20] GeV
-    TH2F    *h_jes_vs_jteta_noJEC_ptbin3 = new TH2F(), 
-            *h_jes_vs_jteta_ppJEC_ptbin3 = new TH2F(), 
-            *h_jes_vs_jteta_stdPlusGausJEC_ptbin3 = new TH2F();
-    TGraph  *jes_noJEC_ptbin3 = new TGraph(), 
-            *jes_ppJEC_ptbin3 = new TGraph(), 
-            *jes_stdPlusGausJEC_ptbin3 = new TGraph();
-    TGraph  *jer_noJEC_ptbin3 = new TGraph(), 
-            *jer_ppJEC_ptbin3 = new TGraph(), 
-            *jer_stdPlusGausJEC_ptbin3 = new TGraph();
-    std::vector<TH2F *>     h_jes_vs_jteta_ptbin3_vec       = {h_jes_vs_jteta_noJEC_ptbin3, h_jes_vs_jteta_ppJEC_ptbin3, h_jes_vs_jteta_stdPlusGausJEC_ptbin3};
-    std::vector<TGraph *>   jes_ptbin3_vec                  = {jes_noJEC_ptbin3, jes_ppJEC_ptbin3, jes_stdPlusGausJEC_ptbin3};
-    std::vector<TGraph *>   jer_ptbin3_vec                  = {jer_noJEC_ptbin3, jer_ppJEC_ptbin3, jer_stdPlusGausJEC_ptbin3};
-    for (size_t i = 0; i < ncor; ++i) {
+    lim1 = 15; lim2 = 20;
+    std::vector<std::pair<TGraph *, TGraph *>> jes_jer_ptbin3_vec;
+    for (size_t i = 0; i < nhist; ++i) {
         TH3F *h3d = h_jes_vs_refpt_vs_jteta_vec[i];
-        TH2F *h2d = (TH2F *) h_jes_vs_jteta_ptbin3_vec[i];
-        TGraph *jes = jes_ptbin3_vec[i];
-        TGraph *jer = jer_ptbin3_vec[i];
-        h3d->GetXaxis()->SetRange(h3d->GetXaxis()->FindBin(15), h3d->GetXaxis()->FindBin(19.9));
-        std::cout << h3d->GetXaxis()->FindBin(15) << " to " << h3d->GetXaxis()->FindBin(19.9) << std::endl;
-        std::cout << h3d->GetXaxis()->GetBinLowEdge(h3d->GetXaxis()->FindBin(15)) << " to " << h3d->GetXaxis()->GetBinUpEdge(h3d->GetXaxis()->FindBin(19.9)) << std::endl;
-        h2d = (TH2F *) h3d->Project3D("ptbin3_yz");
+        h3d->GetXaxis()->SetRange(h3d->GetXaxis()->FindBin(lim1), h3d->GetXaxis()->FindBin(lim2-(1e-2)));
+        TH2F *h2d = (TH2F *) h3d->Project3D("ptbin3_yz");
         h3d->GetXaxis()->SetRange(); // reset range
-        get_jes_jer_vs_jteta(h2d, jes, jer);
+        jes_jer_ptbin3_vec.push_back(get_jes_jer_vs_jteta(h2d));
     }
 
     // refpt in [20, 30] GeV
-    TH2F    *h_jes_vs_jteta_noJEC_ptbin4 = new TH2F(), 
-            *h_jes_vs_jteta_ppJEC_ptbin4 = new TH2F(), 
-            *h_jes_vs_jteta_stdPlusGausJEC_ptbin4 = new TH2F();
-    TGraph  *jes_noJEC_ptbin4 = new TGraph(), 
-            *jes_ppJEC_ptbin4 = new TGraph(), 
-            *jes_stdPlusGausJEC_ptbin4 = new TGraph();
-    TGraph  *jer_noJEC_ptbin4 = new TGraph(), 
-            *jer_ppJEC_ptbin4 = new TGraph(), 
-            *jer_stdPlusGausJEC_ptbin4 = new TGraph();
-    std::vector<TH2F *>     h_jes_vs_jteta_ptbin4_vec       = {h_jes_vs_jteta_noJEC_ptbin4, h_jes_vs_jteta_ppJEC_ptbin4, h_jes_vs_jteta_stdPlusGausJEC_ptbin4};
-    std::vector<TGraph *>   jes_ptbin4_vec                  = {jes_noJEC_ptbin4, jes_ppJEC_ptbin4, jes_stdPlusGausJEC_ptbin4};
-    std::vector<TGraph *>   jer_ptbin4_vec                  = {jer_noJEC_ptbin4, jer_ppJEC_ptbin4, jer_stdPlusGausJEC_ptbin4};
-    for (size_t i = 0; i < ncor; ++i) {
+    lim1 = 20; lim2 = 30;
+    std::vector<std::pair<TGraph *, TGraph *>> jes_jer_ptbin4_vec;
+    for (size_t i = 0; i < nhist; ++i) {
         TH3F *h3d = h_jes_vs_refpt_vs_jteta_vec[i];
-        TH2F *h2d = (TH2F *) h_jes_vs_jteta_ptbin4_vec[i];
-        TGraph *jes = jes_ptbin4_vec[i];
-        TGraph *jer = jer_ptbin4_vec[i];
-        h3d->GetXaxis()->SetRange(h3d->GetXaxis()->FindBin(20), h3d->GetXaxis()->FindBin(29.9));
-        std::cout << h3d->GetXaxis()->FindBin(20) << " to " << h3d->GetXaxis()->FindBin(29.9) << std::endl;
-        std::cout << h3d->GetXaxis()->GetBinLowEdge(h3d->GetXaxis()->FindBin(20)) << " to " << h3d->GetXaxis()->GetBinUpEdge(h3d->GetXaxis()->FindBin(29.9)) << std::endl;
-        h2d = (TH2F *) h3d->Project3D("ptbin4_yz");
+        h3d->GetXaxis()->SetRange(h3d->GetXaxis()->FindBin(lim1), h3d->GetXaxis()->FindBin(lim2-(1e-2)));
+        TH2F *h2d = (TH2F *) h3d->Project3D("ptbin4_yz");
         h3d->GetXaxis()->SetRange(); // reset range
-        get_jes_jer_vs_jteta(h2d, jes, jer);
+        jes_jer_ptbin4_vec.push_back(get_jes_jer_vs_jteta(h2d));
     }
 
     // refpt in [30, 50] GeV
-    TH2F    *h_jes_vs_jteta_noJEC_ptbin5 = new TH2F(), 
-            *h_jes_vs_jteta_ppJEC_ptbin5 = new TH2F(), 
-            *h_jes_vs_jteta_stdPlusGausJEC_ptbin5 = new TH2F();
-    TGraph  *jes_noJEC_ptbin5 = new TGraph(), 
-            *jes_ppJEC_ptbin5 = new TGraph(), 
-            *jes_stdPlusGausJEC_ptbin5 = new TGraph();
-    TGraph  *jer_noJEC_ptbin5 = new TGraph(), 
-            *jer_ppJEC_ptbin5 = new TGraph(), 
-            *jer_stdPlusGausJEC_ptbin5 = new TGraph();
-    std::vector<TH2F *>     h_jes_vs_jteta_ptbin5_vec       = {h_jes_vs_jteta_noJEC_ptbin5, h_jes_vs_jteta_ppJEC_ptbin5, h_jes_vs_jteta_stdPlusGausJEC_ptbin5};
-    std::vector<TGraph *>   jes_ptbin5_vec                  = {jes_noJEC_ptbin5, jes_ppJEC_ptbin5, jes_stdPlusGausJEC_ptbin5};
-    std::vector<TGraph *>   jer_ptbin5_vec                  = {jer_noJEC_ptbin5, jer_ppJEC_ptbin5, jer_stdPlusGausJEC_ptbin5};
-    for (size_t i = 0; i < ncor; ++i) {
+    lim1 = 30; lim2 = 50;
+    std::vector<std::pair<TGraph *, TGraph *>> jes_jer_ptbin5_vec;
+    for (size_t i = 0; i < nhist; ++i) {
         TH3F *h3d = h_jes_vs_refpt_vs_jteta_vec[i];
-        TH2F *h2d = (TH2F *) h_jes_vs_jteta_ptbin5_vec[i];
-        TGraph *jes = jes_ptbin5_vec[i];
-        TGraph *jer = jer_ptbin5_vec[i];
-        h3d->GetXaxis()->SetRange(h3d->GetXaxis()->FindBin(30), h3d->GetXaxis()->FindBin(49.9));
-        std::cout << h3d->GetXaxis()->FindBin(30) << " to " << h3d->GetXaxis()->FindBin(49.9) << std::endl;
-        std::cout << h3d->GetXaxis()->GetBinLowEdge(h3d->GetXaxis()->FindBin(30)) << " to " << h3d->GetXaxis()->GetBinUpEdge(h3d->GetXaxis()->FindBin(49.9)) << std::endl;
-        h2d = (TH2F *) h3d->Project3D("ptbin5_yz");
+        h3d->GetXaxis()->SetRange(h3d->GetXaxis()->FindBin(lim1), h3d->GetXaxis()->FindBin(lim2-(1e-2)));
+        TH2F *h2d = (TH2F *) h3d->Project3D("ptbin5_yz");
         h3d->GetXaxis()->SetRange(); // reset range
-        get_jes_jer_vs_jteta(h2d, jes, jer);
+        jes_jer_ptbin5_vec.push_back(get_jes_jer_vs_jteta(h2d));
     }
 
-    // Draw JES vs jteta
-    TCanvas *c_jes_vs_jteta = new TCanvas("c_jes_vs_jteta", "", 700, 600);
-    jes_stdPlusGausJEC_ptbin1->Draw("APZ");
-    jes_stdPlusGausJEC_ptbin2->Draw("P same");
-    jes_stdPlusGausJEC_ptbin3->Draw("P same");
-    jes_stdPlusGausJEC_ptbin4->Draw("P same");
-    jes_stdPlusGausJEC_ptbin5->Draw("P same");
+    for (size_t i = 0; i < nhist; ++i) {
+        // Draw JES vs jteta
+        TString label = "jes_vs_jteta_per_refpt_" + labels[i];
+        TCanvas *c_jes = new TCanvas(label, "", 700, 600);
+        jes_jer_ptbin1_vec[i].first->Draw("APZ");
+        jes_jer_ptbin2_vec[i].first->Draw("P same");
+        jes_jer_ptbin3_vec[i].first->Draw("P same");
+        jes_jer_ptbin4_vec[i].first->Draw("P same");
+        jes_jer_ptbin5_vec[i].first->Draw("P same");
 
-    formatCanvas(c_jes_vs_jteta);
-    formatGraph(jes_stdPlusGausJEC_ptbin1, "#eta^{jet}", "JES", cmsViolet);
-    formatGraph(jes_stdPlusGausJEC_ptbin2, "#eta^{jet}", "JES", cmsBlue);
-    formatGraph(jes_stdPlusGausJEC_ptbin3, "#eta^{jet}", "JES", cmsLightBlue);
-    formatGraph(jes_stdPlusGausJEC_ptbin4, "#eta^{jet}", "JES", cmsRed);
-    formatGraph(jes_stdPlusGausJEC_ptbin5, "#eta^{jet}", "JES", cmsOrange);
-    jes_stdPlusGausJEC_ptbin1->GetYaxis()->SetRangeUser(0.9, 2.);
-    drawHeader();
+        formatCanvas(c_jes);
+        formatGraph(jes_jer_ptbin1_vec[i].first, "#eta^{jet}", "JES", cmsViolet);
+        formatGraph(jes_jer_ptbin2_vec[i].first, "#eta^{jet}", "JES", cmsBlue);
+        formatGraph(jes_jer_ptbin3_vec[i].first, "#eta^{jet}", "JES", cmsLightBlue);
+        formatGraph(jes_jer_ptbin4_vec[i].first, "#eta^{jet}", "JES", cmsRed);
+        formatGraph(jes_jer_ptbin5_vec[i].first, "#eta^{jet}", "JES", cmsOrange);
+        drawHeader();
 
-    TLegend *leg_per_pt = new TLegend(0.5, 0.55, 0.8 , 0.85);
-    leg_per_pt->SetBorderSize(0);
-    leg_per_pt->SetTextSize(22);
-    leg_per_pt->AddEntry(jes_stdPlusGausJEC_ptbin1, "  5 < p_{T}^{ref} < 10 GeV", "pl");
-    leg_per_pt->AddEntry(jes_stdPlusGausJEC_ptbin2, "10 < p_{T}^{ref} < 15 GeV", "pl");
-    leg_per_pt->AddEntry(jes_stdPlusGausJEC_ptbin3, "15 < p_{T}^{ref} < 20 GeV", "pl");
-    leg_per_pt->AddEntry(jes_stdPlusGausJEC_ptbin4, "20 < p_{T}^{ref} < 30 GeV", "pl");
-    leg_per_pt->AddEntry(jes_stdPlusGausJEC_ptbin5, "30 < p_{T}^{ref} < 50 GeV", "pl");
-    leg_per_pt->Draw();
+        TLegend *leg_per_pt = new TLegend(0.4, 0.7, 0.9, 0.85);
+        leg_per_pt->SetBorderSize(0);
+        leg_per_pt->SetFillStyle(0);
+        leg_per_pt->SetTextSize(22);
+        leg_per_pt->SetNColumns(2);
+        leg_per_pt->AddEntry(jes_jer_ptbin1_vec[i].first, "5 < p_{T}^{ref} < 10", "pl");
+        leg_per_pt->AddEntry(jes_jer_ptbin2_vec[i].first, "10 < p_{T}^{ref} < 15", "pl");
+        leg_per_pt->AddEntry(jes_jer_ptbin3_vec[i].first, "15 < p_{T}^{ref} < 20", "pl");
+        leg_per_pt->AddEntry(jes_jer_ptbin4_vec[i].first, "20 < p_{T}^{ref} < 30", "pl");
+        leg_per_pt->AddEntry(jes_jer_ptbin5_vec[i].first, "30 < p_{T}^{ref} < 50", "pl");
+        leg_per_pt->Draw();
 
-    c_jes_vs_jteta->Print("plots/jes_vs_jteta_per_pt_" + suffix + ".png");
+        c_jes->Print("plots/"+label+".png");
 
-    // Draw JER vs jteta
-    TCanvas *c_jer_vs_jteta = new TCanvas("c_jer_vs_jteta", "", 700, 600);
-    jer_stdPlusGausJEC_ptbin1->Draw("APZ");  
-    jer_stdPlusGausJEC_ptbin2->Draw("P same");
-    jer_stdPlusGausJEC_ptbin3->Draw("P same");
-    jer_stdPlusGausJEC_ptbin4->Draw("P same");
-    jer_stdPlusGausJEC_ptbin5->Draw("P same");
+        // Draw JER vs jteta
+        label = "jer_vs_jteta_per_refpt_" + labels[i];
+        TCanvas *c_jer = new TCanvas(label, "", 700, 600);
+        jes_jer_ptbin1_vec[i].second->Draw("APZ");
+        jes_jer_ptbin2_vec[i].second->Draw("P same");
+        jes_jer_ptbin3_vec[i].second->Draw("P same");
+        jes_jer_ptbin4_vec[i].second->Draw("P same");
+        jes_jer_ptbin5_vec[i].second->Draw("P same");
 
-    formatCanvas(c_jer_vs_jteta);
-    formatGraph(jer_stdPlusGausJEC_ptbin1, "#eta^{jet}", "JER", cmsViolet);
-    formatGraph(jer_stdPlusGausJEC_ptbin2, "#eta^{jet}", "JER", cmsBlue);
-    formatGraph(jer_stdPlusGausJEC_ptbin3, "#eta^{jet}", "JER", cmsLightBlue);
-    formatGraph(jer_stdPlusGausJEC_ptbin4, "#eta^{jet}", "JER", cmsRed);
-    formatGraph(jer_stdPlusGausJEC_ptbin5, "#eta^{jet}", "JER", cmsOrange);
+        formatCanvas(c_jer);
+        formatGraph(jes_jer_ptbin1_vec[i].second, "#eta^{jet}", "JER", cmsViolet);
+        formatGraph(jes_jer_ptbin2_vec[i].second, "#eta^{jet}", "JER", cmsBlue);
+        formatGraph(jes_jer_ptbin3_vec[i].second, "#eta^{jet}", "JER", cmsLightBlue);
+        formatGraph(jes_jer_ptbin4_vec[i].second, "#eta^{jet}", "JER", cmsRed);
+        formatGraph(jes_jer_ptbin5_vec[i].second, "#eta^{jet}", "JER", cmsOrange);
+        drawHeader();
 
-    drawHeader();
-    leg_per_pt->Draw();
+        leg_per_pt->Draw();
 
-    c_jer_vs_jteta->Print("plots/jer_vs_jteta_per_pt_" + suffix + ".png");
+        c_jer->Print("plots/"+label+".png");
+    }
 }

@@ -19,30 +19,41 @@ def main():
 
 
     upcbins = np.array([
-        -5.191, -4.013, -2.964, 
-        -2.500, -1.740, -1.305, -1.044, -0.696, -0.435, -0.174,
+        -5.191, -4.889, -4.538, -3.139,   
+        -2.964, -2.650,
+        -2.500, -2.172, -1.740, 
+        -1.305, -1.044, -0.696, -0.348,
         +0.000, 
-        +0.174, +0.435, +0.696, +1.044, +1.305, +1.740, +2.500, 
-        +2.964, +4.013, +5.191
+        +0.348, +0.696, +1.044, +1.305,
+        +1.740, +2.172, +2.500,
+        +2.650, +2.964,
+        +3.139, +4.538, +4.889, +5.191
         ])
 
     detector_edges = np.array([
         -5.191, -2.964, -2.500, -1.305,
+        0.,
         +1.305, +2.500, +2.964, +5.191
         ])
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 4))
     for x in ppbins:
         ax1.axvline(x, color='gray', linestyle='-', alpha=0.5)
-    ax1.set_xlabel('$\\eta$')
-    ax1.set_title('Default binning')
-    ax1.yaxis.set_visible(False)
-
     for x in upcbins:
         ax2.axvline(x, color='gray', linestyle='-', alpha=0.5)
-    ax2.set_xlabel('$\\eta$')
-    ax2.set_title('Working binning')
-    ax2.yaxis.set_visible(False)
+    for ax in [ax1, ax2]:
+        ax.set_xlim(-5.191, 5.191)
+        ax.set_xlabel('$\\eta$')
+        ax.set_title('Default binning')
+        ax.yaxis.set_visible(False)
+        ax.text(-4.1, 0.5, 'HF-')
+        ax.text(-3, 0.5, 'EC2-')
+        ax.text(-2.1, 0.5, 'EC1-')
+        ax.text(-0.8, 0.5, 'BB-')
+        ax.text(0.5, 0.5, 'BB+')
+        ax.text(1.7, 0.5, 'EC1+')
+        ax.text(2.5, 0.5, 'EC2+')
+        ax.text(3.9, 0.5, 'HF+')
 
     for x in detector_edges:
         ax1.axvline(x, color='black', linestyle=':', alpha=1)
