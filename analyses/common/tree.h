@@ -19,10 +19,10 @@ class tree {
         void Init();
         Long64_t GetEntries();
         void GetEntry(Long64_t);
-        bool passFilter(Long64_t);
+        bool passFilter(Long64_t, bool, bool, bool, bool, bool);
         void loadVetoMap(const std::string);
         bool passVetoMap(Float_t, Float_t);
-        bool passJetID(Float_t, Float_t, Float_t, Float_t);
+        bool passJetID(Float_t, Int_t, Int_t, Int_t, Int_t, Int_t, Float_t, Float_t, Float_t, Float_t, Float_t);
         bool pass0n0n(Float_t, Float_t);
 
         bool isMC = false;
@@ -36,9 +36,16 @@ class tree {
         Float_t jteta[MAXJETS];
         Float_t jtphi[MAXJETS];
         Float_t jtm[MAXJETS];
+        Float_t jtPfCHF[MAXJETS];
+        Float_t jtPfNHF[MAXJETS];
         Float_t jtPfCEF[MAXJETS];
         Float_t jtPfNEF[MAXJETS];
         Float_t jtPfMUF[MAXJETS];
+        Int_t jtPfCHM[MAXJETS];
+        Int_t jtPfNHM[MAXJETS];
+        Int_t jtPfCEM[MAXJETS];
+        Int_t jtPfNEM[MAXJETS];
+        Int_t jtPfMUM[MAXJETS];
 
         Float_t refpt[MAXJETS];
         Float_t refeta[MAXJETS];
@@ -75,8 +82,6 @@ tree::tree(TString treeName) {
     hi = new TChain("hiEvtAnalyzer/HiTree");
     zdc = new TChain("zdcanalyzer/zdcrechit");
     pf = new TChain("particleFlowAnalyser/pftree");
-
-    // loadVetoMap("/u/user/lidakal/UPC2023/upcJetAnalysis/analyses/common/vetomaps/Summer23BPixPrompt23_RunD_v1.root");
 }    
 tree::~tree() {
     if (t) delete t;   
@@ -100,7 +105,7 @@ void tree::Init() {
         std::cerr << "Error: No input files added!" << std::endl;
         return;
     }
-    if (!fileNames[0].Contains("HIForward")) isMC = true;
+    if (!fileNames[0].Contains("HIForward")&&!fileNames[0].Contains("HIEmptyBX")) isMC = true;
 
     for (const auto& fileName : fileNames) {
         t->Add(fileName);
@@ -124,9 +129,16 @@ void tree::Init() {
     t->SetBranchAddress("jteta", jteta);
     t->SetBranchAddress("jtphi", jtphi);
     t->SetBranchAddress("jtm", jtm);
+    t->SetBranchAddress("jtPfCHF", jtPfCHF);
+    t->SetBranchAddress("jtPfNHF", jtPfNHF);
     t->SetBranchAddress("jtPfCEF", jtPfCEF);
     t->SetBranchAddress("jtPfNEF", jtPfNEF);
     t->SetBranchAddress("jtPfMUF", jtPfMUF);
+    t->SetBranchAddress("jtPfCHM", jtPfCHM);
+    t->SetBranchAddress("jtPfNHM", jtPfNHM);
+    t->SetBranchAddress("jtPfCEM", jtPfCEM);
+    t->SetBranchAddress("jtPfNEM", jtPfNEM);
+    t->SetBranchAddress("jtPfMUM", jtPfMUM);
 
     if (isMC) {
         t->SetBranchAddress("refpt", refpt);
@@ -159,6 +171,8 @@ void tree::Init() {
     pf->SetBranchAddress("pfEta", &pfEta);
     pf->SetBranchAddress("pfPhi", &pfPhi);
     pf->SetBranchAddress("pfE", &pfE);
+
+    loadVetoMap("/u/user/lidakal/UPC2023/upcJetAnalysis/analyses/common/vetomaps/Summer23BPixPrompt23_RunD_v1.root");
 }
 Long64_t tree::GetEntries() {
     return t->GetEntries();
@@ -170,65 +184,77 @@ void tree::GetEntry(Long64_t ientry) {
     zdc->GetEntry(ientry);
     pf->GetEntry(ientry);
 }
-bool tree::passFilter(Long64_t ientry) {
+bool tree::passFilter(Long64_t ientry, bool hltcond=true, bool zdccond=true, bool dijetcond=true, bool activitycond=true, bool rapgapcond=true) {
     // std::cout << "Filtering entry " << ientry << std::endl;
     GetEntry(ientry);
     
     // hlt
-    if (!HLT_SingleJet20_NotMBHF2AND) return false;
-    // if (HLT_ZDC1nOr) return false;
-    // std::cout << "\tHLT passed" << std::endl;
-
-    // zdc cuts for 0n0n
-    if (!isMC)
-        if (!pass0n0n(sumPlus, sumMinus)) return false;
-
-    // rapidity gap
-    TLorentzVector jet1, jet2;
-    jet1.SetPtEtaPhiM(jtpt[0], jteta[0], jtphi[0], jtm[0]);
-    jet2.SetPtEtaPhiM(jtpt[1], jteta[1], jtphi[1], jtm[1]);
-    auto dijet = jet1 + jet2;
-    double dijet_eta = dijet.Eta();
-
-    double maxE_forward = 0;
-    double maxE_backward = 0;
-    for (int i=0; i<nPF; i++) {        
-        // check for same hemisphere as dijet
-        bool is_forward = (pfEta->at(i) * dijet_eta > 0);
-
-        if (is_forward) {
-            if (std::abs(pfEta->at(i)) > 3)
-                if (pfE->at(i) > maxE_forward) maxE_forward = pfE->at(i);
-        } else {
-            if (std::abs(pfEta->at(i)) > 3)
-                if (pfE->at(i) > maxE_backward) maxE_backward = pfE->at(i);
-        }
+    if (hltcond) {
+        if (!HLT_SingleJet20_NotMBHF2AND) return false;
+        // if (HLT_ZDC1nOr) return false;
+        // std::cout << "\tHLT passed" << std::endl;
     }
-    if (maxE_backward > 10) return false;
-    // add DetaB > 1.2
-    // add DetaB > DetaF
+    
+    // zdc cuts for 0n0n
+    if (zdccond) {
+        if (!isMC) {
+            if (!pass0n0n(sumPlus, sumMinus)) return false;
+        }
+    }    
     
     // dijet selections
-    if (nref < 2) return false;
-    if (jtpt[0] < 30) return false;
-    if (jtpt[1] < 20) return false;
-    for (Int_t ijet=0; ijet<2; ijet++) {
-        // jet kinematics
-        if (std::abs(jteta[ijet]) > 2.5) return false;
+    if (dijetcond) {
+        if (nref < 2) return false;
+        if (jtpt[0] < 30) return false;
+        if (jtpt[1] < 20) return false;
+        for (Int_t ijet=0; ijet<2; ijet++) {
+            // jet kinematics
+            if (std::abs(jteta[ijet]) > 2.5) return false;
 
-        // jet id selections
-        // if (!passJetID(jteta[ijet], jtPfCEF[ijet], jtPfNEF[ijet], jtPfMUF[ijet])) return false;
-        // jet veto map
-        // if (!passVetoMap(jteta[ijet], jtphi[ijet])) return false;
+            // jet id selections
+            if (!passJetID(jteta[ijet], 
+                jtPfCHM[ijet], jtPfNHM[ijet], jtPfCEM[ijet], jtPfNEM[ijet], jtPfMUM[ijet], 
+                jtPfCHF[ijet], jtPfNHF[ijet], jtPfCEF[ijet], jtPfNEF[ijet], jtPfMUF[ijet])
+            ) return false;
+            // jet veto map
+            if (!passVetoMap(jteta[ijet], jtphi[ijet])) return false;
+        }
     }
 
     // additional activiy
-    if (nref>2 && jtpt[2] > 20) return false;
-    // add veto for tracks in forward w pt>6
-    // add Deta(jt,trk) < 1 for either jet and track defining DetaB
-    // std::cout << "\tAdditional activity passed" << std::endl;
+    if (activitycond) {
+        if (nref>2 && jtpt[2] > 20) return false;
+        // add veto for tracks in forward w pt>6
+        // add Deta(jt,trk) < 1 for either jet and track defining DetaB
+        // std::cout << "\tAdditional activity passed" << std::endl;
+    }
 
-    // maybe QT < PT (in the future)
+    // rapidity gap
+    if (rapgapcond) {
+        TLorentzVector jet1, jet2;
+        jet1.SetPtEtaPhiM(jtpt[0], jteta[0], jtphi[0], jtm[0]);
+        jet2.SetPtEtaPhiM(jtpt[1], jteta[1], jtphi[1], jtm[1]);
+        auto dijet = jet1 + jet2;
+        // double dijet_eta = dijet.Eta();
+
+        // double maxE_forward = 0;
+        // double maxE_backward = 0;
+        // for (int i=0; i<nPF; i++) {        
+        //     // check for same hemisphere as dijet
+        //     bool is_forward = (pfEta->at(i) * dijet_eta > 0);
+
+        //     if (is_forward) {
+        //         if (std::abs(pfEta->at(i)) > 3)
+        //             if (pfE->at(i) > maxE_forward) maxE_forward = pfE->at(i);
+        //     } else {
+        //         if (std::abs(pfEta->at(i)) > 3)
+        //             if (pfE->at(i) > maxE_backward) maxE_backward = pfE->at(i);
+        //     }
+        // }
+        // if (maxE_backward > 8) return false;
+        // add DetaB > 1.2
+        // add DetaB > DetaF
+    }
 
     // std::cout << "\tAll selections passed for entry " << ientry << std::endl;
     return true;
@@ -259,17 +285,22 @@ bool tree::passVetoMap(Float_t eta, Float_t phi) {
 }
 
 // limits from Nick
-bool tree::passJetID(Float_t eta, Float_t CEF, Float_t NEF, Float_t MUF) {
+bool tree::passJetID(Float_t eta, Int_t CHM, Int_t NHM, Int_t CEM, Int_t NEM, Int_t MUM, Float_t CHF, Float_t NHF, Float_t CEF, Float_t NEF, Float_t MUF) {
     // info: https://cms-talk.web.cern.ch/t/updated-jet-selection-criterion-for-jet-veto-map/130527
-    // info: https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID13p6TeV#nanoAOD_Flags
+    // info: https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID13p6TeV, 2023 BCD, AK4CHS
+    Int_t mult_c = CHM + NHM + MUM;
+    Int_t mult_n = CEM + NEM;
+    Int_t mult = mult_c + mult_n;
     if (std::abs(eta) <= 2.6) {
-        if ((NEF>0.9) || (MUF>0.8) || (CEF>0.8)) return false;
+        if ((mult<2) || (mult_c<1)) return false;
+        if ((NHF>0.99) || (CHF<0.01) || (CEF>0.9) || (NEF>0.8) || (MUF>0.8)) return false;
     } else if (std::abs(eta) <= 2.7) {
-        if ((NEF>0.99) || (MUF>0.8) || (CEF>0.8)) return false;
+        if ((NHF>0.9) || (NEF>0.99) || (CEF>0.8) || (MUF>0.8)) return false;
     } else if (std::abs(eta) <= 3.0) {
-        if (NEF>0.99) return false;
+        if (NHF>0.99) return false;
     } else if (std::abs(eta) <= 5.2) {
-        if (NEF>0.9) return false;
+        if (mult_n<2) return false;
+        if (NEF>0.4) return false;
     }
     return true;
 }
