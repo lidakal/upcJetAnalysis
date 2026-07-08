@@ -11,15 +11,16 @@ void plot_dijet_kinematics(TString fin="", TString fout="dijet_kinematics.root")
     if (fin != "") {
         t.Add(fin);
     } else {
-        t.Add("/u/user/lidakal/SE_UserHome/HIForward5/crab_HiForward5_HIRun2023A-PromptReco-v2_ZDCjson_noCCfilter/260624_071604//0000/HiForestMiniAOD_1*.root");
+        t.Add("/u/user/lidakal/SE_UserHome/HIForward0/crab_HiForward0_HIRun2023A-16Jan2024-v1_ZDCjson_wCCfilter/260629_023836/0000/HiForestMiniAOD_*.root");
     }
     t.Init();
 
+    TH2F *h_eta1_eta2 = new TH2F("h_eta1_eta2", "eta1 vs eta2", 100, -5, 5, 100, -5, 5);
     TH1F *h_dphi = new TH1F("h_dphi", "dijet #Delta#phi", 100, 0, TMath::Pi());
     TH1F *h_deta = new TH1F("h_deta", "dijet #Delta#eta", 100, 0, 10);
     TH1F *h_dR = new TH1F("h_dR", "dijet #DeltaR", 100, 0, 10);
-    TH1F *h_QT = new TH1F("h_QT", "dijet QT", 100, 0, 100);
-    TH1F *h_PT = new TH1F("h_PT", "dijet PT", 100, 0, 100);
+    TH1F *h_QT = new TH1F("h_QT", "dijet QT", 50, 0, 100);
+    TH1F *h_PT = new TH1F("h_PT", "dijet PT", 50, 0, 100);
     TH1F *h_Minv = new TH1F("h_Minv", "dijet invariant mass", 100, 0, 200);
     TH1F *h_y = new TH1F("h_y", "dijet rapidity", 100, -5, 5);
     TH1F *h_PHI = new TH1F("h_PHI", "PHI(QT,PT)", 100, 0, TMath::Pi());
@@ -43,6 +44,7 @@ void plot_dijet_kinematics(TString fin="", TString fout="dijet_kinematics.root")
 
         if (!t.passFilter(ient)) continue;
 
+        h_eta1_eta2->Fill(t.jteta[0], t.jteta[1]);
         double dphi = std::acos(std::cos(t.jtphi[0] - t.jtphi[1]));
         double deta = std::abs(t.jteta[0] - t.jteta[1]);
         double dR = std::sqrt(deta*deta + dphi*dphi);
@@ -92,9 +94,12 @@ void plot_dijet_kinematics(TString fin="", TString fout="dijet_kinematics.root")
         h_PT->Fill(pt);
         h_Minv->Fill(minv);
         h_y->Fill(y);
-        h_PHI->Fill(PHI);
-        h_PHI_signed->Fill(PHI_signed);
-        h_cos2PHI_vs_QT->Fill(qt, cos2PHI);
+
+        if (qt < pt) {
+            h_PHI->Fill(PHI);
+            h_PHI_signed->Fill(PHI_signed);
+            h_cos2PHI_vs_QT->Fill(qt, cos2PHI);
+        }
     }
 
     TFile *f = new TFile(fout, "recreate");
@@ -103,6 +108,7 @@ void plot_dijet_kinematics(TString fin="", TString fout="dijet_kinematics.root")
     h_dR->Write();
     h_QT->Write();
     h_PT->Write();
+    h_eta1_eta2->Write();
     h_Minv->Write();
     h_y->Write();
     h_PHI->Write();
