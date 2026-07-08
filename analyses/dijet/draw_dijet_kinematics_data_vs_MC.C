@@ -7,13 +7,13 @@ void draw_dijet_kinematics_data_vs_MC()
     gStyle->SetLabelSize(28, "XYZ");
     gStyle->SetLegendTextSize(28);
 
-    TFile *f_data = new TFile("histos/merged_hiforward1to4_dijet_kinematics.root");
+    TFile *f_data = new TFile("histos/merged_hiforward0to4_2024rereco_dijet_kinematics.root");
     TH1F *h_QT_data = (TH1F*)f_data->Get("h_QT")->Clone("h_QT_data");
     TH1F *h_PT_data = (TH1F*)f_data->Get("h_PT")->Clone("h_PT_data");
     TH1F *h_Minv_data = (TH1F*)f_data->Get("h_Minv")->Clone("h_Minv_data");
     TH1F *h_y_data = (TH1F*)f_data->Get("h_y")->Clone("h_y_data");
     TH1F *h_PHI_data = (TH1F*)f_data->Get("h_PHI")->Clone("h_PHI_data");
-    // TH1F *h_PHI_signed_data = (TH1F*)f_data->Get("h_PHI_signed")->Clone("h_PHI_signed_data");
+    TH1F *h_PHI_signed_data = (TH1F*)f_data->Get("h_PHI_signed")->Clone("h_PHI_signed_data");
     TH2F *h_cos2PHI_vs_QT_data = (TH2F*)f_data->Get("h_cos2PHI_vs_QT")->Clone("h_cos2PHI_vs_QT_data");
 
     TFile *f_beamA = new TFile("histos/beamA_diffraction_pthat10_dijet_kinematics.root");
@@ -22,7 +22,7 @@ void draw_dijet_kinematics_data_vs_MC()
     TH1F *h_Minv_beamA = (TH1F*)f_beamA->Get("h_Minv")->Clone("h_Minv_beamA");
     TH1F *h_y_beamA = (TH1F*)f_beamA->Get("h_y")->Clone("h_y_beamA");
     TH1F *h_PHI_beamA = (TH1F*)f_beamA->Get("h_PHI")->Clone("h_PHI_beamA");
-    // TH1F *h_PHI_signed_beamA = (TH1F*)f_beamA->Get("h_PHI_signed")->Clone("h_PHI_signed_beamA");
+    TH1F *h_PHI_signed_beamA = (TH1F*)f_beamA->Get("h_PHI_signed")->Clone("h_PHI_signed_beamA");
     TH2F *h_cos2PHI_vs_QT_beamA = (TH2F*)f_beamA->Get("h_cos2PHI_vs_QT")->Clone("h_cos2PHI_vs_QT_beamA");
 
     TFile *f_beamB = new TFile("histos/beamB_diffraction_pthat10_dijet_kinematics.root");
@@ -31,8 +31,26 @@ void draw_dijet_kinematics_data_vs_MC()
     TH1F *h_Minv_beamB = (TH1F*)f_beamB->Get("h_Minv")->Clone("h_Minv_beamB");
     TH1F *h_y_beamB = (TH1F*)f_beamB->Get("h_y")->Clone("h_y_beamB");
     TH1F *h_PHI_beamB = (TH1F*)f_beamB->Get("h_PHI")->Clone("h_PHI_beamB");
-    // TH1F *h_PHI_signed_beamB = (TH1F*)f_beamB->Get("h_PHI_signed")->Clone("h_PHI_signed_beamB");
+    TH1F *h_PHI_signed_beamB = (TH1F*)f_beamB->Get("h_PHI_signed")->Clone("h_PHI_signed_beamB");
     TH2F *h_cos2PHI_vs_QT_beamB = (TH2F*)f_beamB->Get("h_cos2PHI_vs_QT")->Clone("h_cos2PHI_vs_QT_beamB");
+
+    // Preprocess
+    for (auto h : { 
+        h_QT_data, h_QT_beamA, h_QT_beamB,
+        h_PT_data, h_PT_beamA, h_PT_beamB,
+        h_Minv_data, h_Minv_beamA, h_Minv_beamB,
+        h_y_data, h_y_beamA, h_y_beamB,
+    }) {
+        h->Rebin(2);
+    }
+
+    for (auto h : { h_PHI_signed_data, h_PHI_signed_beamA, h_PHI_signed_beamB }) {
+        h->RebinX(5);
+    }
+
+    for (auto h : { h_cos2PHI_vs_QT_data, h_cos2PHI_vs_QT_beamA, h_cos2PHI_vs_QT_beamB }) {
+        h->RebinX(5);
+    }
 
     // QT + PT, Minv, y
     TCanvas *c_kinematics = new TCanvas("c_kinematics", "c_kinematics", 2400, 800);
@@ -83,6 +101,7 @@ void draw_dijet_kinematics_data_vs_MC()
     c_kinematics->cd(2);
     h_Minv_data->Scale(1.0 / h_Minv_data->Integral(), "width");
     h_Minv_data->SetMaximum(0.05);
+    h_Minv_data->SetMinimum(0.);
     h_Minv_data->SetLineColor(cmsViolet);
     h_Minv_data->SetMarkerColor(cmsViolet);
     h_Minv_data->SetMarkerStyle(20);
@@ -123,30 +142,51 @@ void draw_dijet_kinematics_data_vs_MC()
     c_kinematics->Print("plots/data_vs_MC_dijet_kinematics.png");
 
     // dN/dPHI vs PHI, <cos(2PHI)> vs QT
-    // TCanvas *c_observables = new TCanvas("c_observables", "c_observables", 2400, 800);
-    // c_observables->Divide(2,1);
+    TCanvas *c_observables = new TCanvas("c_observables", "c_observables", 2400, 800);
+    c_observables->Divide(2,1);
 
-    // c_observables->cd(1);
-    // h_PHI_signed_data->Scale(1.0 / h_PHI_signed_data->Integral(), "width"); 
-    // h_PHI_signed_data->SetLineColor(cmsBlue);
-    // h_PHI_signed_data->SetMarkerColor(cmsBlue);
-    // h_PHI_signed_data->GetXaxis()->SetTitle("#Phi (radians)");
-    // h_PHI_signed_data->GetYaxis()->SetTitle("1/N_{events}dN/d#Phi");
-    // h_PHI_signed_data->Draw();
+    c_observables->cd(1);
+    h_PHI_signed_data->Scale(1.0 / h_PHI_signed_data->Integral(), "width"); 
+    h_PHI_signed_data->SetMaximum(0.6);
+    h_PHI_signed_data->SetMinimum(0.);
+    h_PHI_signed_data->SetLineColor(cmsViolet);
+    h_PHI_signed_data->SetMarkerColor(cmsViolet);
+    h_PHI_signed_data->SetMarkerStyle(20);
+    h_PHI_signed_data->GetXaxis()->SetTitle("#Phi (radians)");
+    h_PHI_signed_data->GetYaxis()->SetTitle("1/N_{events}dN/d#Phi");
+    h_PHI_signed_beamA->Scale(1.0 / h_PHI_signed_beamA->Integral(), "width");
+    h_PHI_signed_beamA->SetLineColor(cmsBlue);
+    h_PHI_signed_beamB->Scale(1.0 / h_PHI_signed_beamB->Integral(), "width");
+    h_PHI_signed_beamB->SetLineColor(cmsLightBlue);
+    h_PHI_signed_data->Draw();
+    h_PHI_signed_beamA->Draw("same hist");
+    h_PHI_signed_beamB->Draw("same hist");
+    legend_m->Draw();
 
-    // c_observables->cd(2);
-    // h_cos2PHI_vs_QT_data->GetXaxis()->SetTitle("QT (GeV)");
-    // h_cos2PHI_vs_QT_data->GetYaxis()->SetTitle("cos(2#Phi)");
-    // h_cos2PHI_vs_QT_data->Draw("COLZ");
+    c_observables->cd(2);
+    h_cos2PHI_vs_QT_data->GetXaxis()->SetTitle("QT (GeV)");
+    h_cos2PHI_vs_QT_data->GetYaxis()->SetTitle("cos(2#Phi)");
+    h_cos2PHI_vs_QT_data->Draw("COLZ");
 
-    // c_observables->cd(3);
-    // TProfile *p_cos2PHI_vs_QT_data = h_cos2PHI_vs_QT_data->ProfileX();
-    // p_cos2PHI_vs_QT_data->SetLineColor(cmsBlue);
-    // p_cos2PHI_vs_QT_data->SetMarkerColor(cmsBlue);
-    // p_cos2PHI_vs_QT_data->GetXaxis()->SetTitle("QT (GeV)");
-    // p_cos2PHI_vs_QT_data->GetYaxis()->SetTitle("<cos(2#Phi)>");
-    // p_cos2PHI_vs_QT_data->Draw();
+    c_observables->cd(3);
+    TProfile *p_cos2PHI_vs_QT_data = h_cos2PHI_vs_QT_data->ProfileX();
+    p_cos2PHI_vs_QT_data->SetMaximum(2.);
+    p_cos2PHI_vs_QT_data->SetMinimum(-1.);
+    p_cos2PHI_vs_QT_data->GetXaxis()->SetRangeUser(0., 30.);
+    p_cos2PHI_vs_QT_data->SetLineColor(cmsViolet);
+    p_cos2PHI_vs_QT_data->SetMarkerColor(cmsViolet);
+    p_cos2PHI_vs_QT_data->SetMarkerStyle(20);
+    p_cos2PHI_vs_QT_data->GetXaxis()->SetTitle("QT (GeV)");
+    p_cos2PHI_vs_QT_data->GetYaxis()->SetTitle("<cos(2#Phi)>");
+    TProfile *p_cos2PHI_vs_QT_beamA = h_cos2PHI_vs_QT_beamA->ProfileX();
+    p_cos2PHI_vs_QT_beamA->SetLineColor(cmsBlue);
+    TProfile *p_cos2PHI_vs_QT_beamB = h_cos2PHI_vs_QT_beamB->ProfileX();
+    p_cos2PHI_vs_QT_beamB->SetLineColor(cmsLightBlue);
+    p_cos2PHI_vs_QT_data->Draw();
+    p_cos2PHI_vs_QT_beamA->Draw("same hist");
+    p_cos2PHI_vs_QT_beamB->Draw("same hist");
+    legend_m->Draw();
 
-    // c_observables->Print("plots/" + sample + "_dijet_observables.pdf");
-    // c_observables->Print("plots/" + sample + "_dijet_observables.png");
+    c_observables->Print("plots/data_vs_MC_dijet_observables.pdf");
+    c_observables->Print("plots/data_vs_MC_dijet_observables.png");
 }
