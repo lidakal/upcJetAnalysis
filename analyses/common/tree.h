@@ -56,11 +56,26 @@ class tree {
         Float_t weight = 0.;
 
         // hlt variables
+        Int_t HLT_HIL1NotBptxOR = -1;
         Int_t HLT_SingleJet8_NotMBHF2AND = -1;
         Int_t HLT_SingleJet12_NotMBHF2AND = -1;
         Int_t HLT_SingleJet16_NotMBHF2AND = -1;
         Int_t HLT_SingleJet20_NotMBHF2AND = -1;
         Int_t HLT_ZDC1nOr = -1;
+
+        Int_t HLT_SingleJet8_NotMBHF2AND_presc_num = -1;
+        Int_t HLT_SingleJet8_NotMBHF2AND_presc_denom = 1;
+        Int_t HLT_SingleJet12_NotMBHF2AND_presc_num = -1;
+        Int_t HLT_SingleJet12_NotMBHF2AND_presc_denom = 1;
+        Int_t HLT_SingleJet16_NotMBHF2AND_presc_num = -1;
+        Int_t HLT_SingleJet16_NotMBHF2AND_presc_denom = 1;
+        Int_t HLT_SingleJet20_NotMBHF2AND_presc_num = -1;
+        Int_t HLT_SingleJet20_NotMBHF2AND_presc_denom = 1;
+
+        Int_t L1_SingleJet8_NotMBHF2AND_prescl = -1;
+        Int_t L1_SingleJet12_NotMBHF2AND_prescl = -1;
+        Int_t L1_SingleJet16_NotMBHF2AND_prescl = -1;
+        Int_t L1_SingleJet20_NotMBHF2AND_prescl = -1;
 
         // zdc variables
         Float_t sumPlus = 0.;
@@ -155,11 +170,26 @@ void tree::Init() {
     }
 
     // hlt branches
+    if (fileNames[0].Contains("HIEmptyBX")) hlt->SetBranchAddress("HLT_HIL1NotBptxOR_v10", &HLT_HIL1NotBptxOR);
     hlt->SetBranchAddress("HLT_HIUPC_SingleJet8_NotMBHF2AND_MaxPixelCluster50000_v2", &HLT_SingleJet8_NotMBHF2AND);
     hlt->SetBranchAddress("HLT_HIUPC_SingleJet12_NotMBHF2AND_MaxPixelCluster50000_v2", &HLT_SingleJet12_NotMBHF2AND);
     hlt->SetBranchAddress("HLT_HIUPC_SingleJet16_NotMBHF2AND_MaxPixelCluster50000_v2", &HLT_SingleJet16_NotMBHF2AND);
     hlt->SetBranchAddress("HLT_HIUPC_SingleJet20_NotMBHF2AND_MaxPixelCluster50000_v2", &HLT_SingleJet20_NotMBHF2AND);
     hlt->SetBranchAddress("HLT_HIUPC_ZDC1nOR_MinPixelCluster400_MaxPixelCluster10000_v8", &HLT_ZDC1nOr);
+
+    hlt->SetBranchAddress("HLT_HIUPC_SingleJet8_NotMBHF2AND_MaxPixelCluster50000_v2_PrescaleNumerator", &HLT_SingleJet8_NotMBHF2AND_presc_num);
+    hlt->SetBranchAddress("HLT_HIUPC_SingleJet12_NotMBHF2AND_MaxPixelCluster50000_v2_PrescaleNumerator", &HLT_SingleJet12_NotMBHF2AND_presc_num);
+    hlt->SetBranchAddress("HLT_HIUPC_SingleJet16_NotMBHF2AND_MaxPixelCluster50000_v2_PrescaleNumerator", &HLT_SingleJet16_NotMBHF2AND_presc_num);
+    hlt->SetBranchAddress("HLT_HIUPC_SingleJet20_NotMBHF2AND_MaxPixelCluster50000_v2_PrescaleNumerator", &HLT_SingleJet20_NotMBHF2AND_presc_num);
+    hlt->SetBranchAddress("HLT_HIUPC_SingleJet8_NotMBHF2AND_MaxPixelCluster50000_v2_PrescaleDenominator", &HLT_SingleJet8_NotMBHF2AND_presc_denom);
+    hlt->SetBranchAddress("HLT_HIUPC_SingleJet12_NotMBHF2AND_MaxPixelCluster50000_v2_PrescaleDenominator", &HLT_SingleJet12_NotMBHF2AND_presc_denom);
+    hlt->SetBranchAddress("HLT_HIUPC_SingleJet16_NotMBHF2AND_MaxPixelCluster50000_v2_PrescaleDenominator", &HLT_SingleJet16_NotMBHF2AND_presc_denom);
+    hlt->SetBranchAddress("HLT_HIUPC_SingleJet20_NotMBHF2AND_MaxPixelCluster50000_v2_PrescaleDenominator", &HLT_SingleJet20_NotMBHF2AND_presc_denom);
+
+    hlt->SetBranchAddress("L1_SingleJet8_NotMinimumBiasHF2_AND_BptxAND_Prescl", &L1_SingleJet8_NotMBHF2AND_prescl);
+    hlt->SetBranchAddress("L1_SingleJet12_NotMinimumBiasHF2_AND_BptxAND_Prescl", &L1_SingleJet12_NotMBHF2AND_prescl);
+    hlt->SetBranchAddress("L1_SingleJet16_NotMinimumBiasHF2_AND_BptxAND_Prescl", &L1_SingleJet16_NotMBHF2AND_prescl);
+    hlt->SetBranchAddress("L1_SingleJet20_NotMinimumBiasHF2_AND_BptxAND_Prescl", &L1_SingleJet20_NotMBHF2AND_prescl);
 
     // zdc branches
     zdc->SetBranchAddress("sumPlus", &sumPlus);
@@ -172,7 +202,7 @@ void tree::Init() {
     pf->SetBranchAddress("pfPhi", &pfPhi);
     pf->SetBranchAddress("pfE", &pfE);
 
-    loadVetoMap("/u/user/lidakal/UPC2023/upcJetAnalysis/analyses/common/vetomaps/Summer23BPixPrompt23_RunD_v1.root");
+    loadVetoMap("/u/user/lidakal/UPC2023/upcJetAnalysis/analyses/common/vetomaps/Summer23BPixPrompt23_RunD_v0.root");
 }
 Long64_t tree::GetEntries() {
     return t->GetEntries();
@@ -190,7 +220,7 @@ bool tree::passFilter(Long64_t ientry, bool hltcond=true, bool zdccond=true, boo
     
     // hlt
     if (hltcond) {
-        if (!HLT_SingleJet20_NotMBHF2AND) return false;
+        if (!HLT_SingleJet8_NotMBHF2AND) return false;
         // if (HLT_ZDC1nOr) return false;
         // std::cout << "\tHLT passed" << std::endl;
     }
@@ -210,14 +240,16 @@ bool tree::passFilter(Long64_t ientry, bool hltcond=true, bool zdccond=true, boo
         for (Int_t ijet=0; ijet<2; ijet++) {
             // jet kinematics
             if (std::abs(jteta[ijet]) > 2.5) return false;
-
+            // std::cout << "\tPassed dijet kinematics, nref=" << nref << std::endl;
             // jet id selections
-            if (!passJetID(jteta[ijet], 
-                jtPfCHM[ijet], jtPfNHM[ijet], jtPfCEM[ijet], jtPfNEM[ijet], jtPfMUM[ijet], 
-                jtPfCHF[ijet], jtPfNHF[ijet], jtPfCEF[ijet], jtPfNEF[ijet], jtPfMUF[ijet])
-            ) return false;
+            // if (!passJetID(jteta[ijet], 
+            //     jtPfCHM[ijet], jtPfNHM[ijet], jtPfCEM[ijet], jtPfNEM[ijet], jtPfMUM[ijet], 
+            //     jtPfCHF[ijet], jtPfNHF[ijet], jtPfCEF[ijet], jtPfNEF[ijet], jtPfMUF[ijet])
+            // ) return false;
+            // std::cout << "Passed jet ID" << std::endl;
             // jet veto map
-            if (!passVetoMap(jteta[ijet], jtphi[ijet])) return false;
+            // if (!passVetoMap(jteta[ijet], jtphi[ijet])) return false;
+            // std::cout << "Passed jet veto map" << std::endl;
         }
     }
 
