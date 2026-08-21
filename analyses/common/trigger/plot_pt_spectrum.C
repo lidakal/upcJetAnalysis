@@ -13,7 +13,7 @@ void plot_pt_spectrum(TString fin="", TString fout="pt_spectrum.root")
     }
     t.Init();
 
-    // trigger maps -- only vs jet20  is useful for PS calculation
+    // trigger maps -- only vs jet20 is useful for PS calculation
     TH2F *h_trigger_jet8_vs_jet20 = new TH2F("h_trigger_jet8_vs_jet20", "jet8 vs jet20", 2, 0, 2, 2, 0, 2);
     TH2F *h_trigger_jet12_vs_jet20 = new TH2F("h_trigger_jet12_vs_jet20", "jet12 vs jet20", 2, 0, 2, 2, 0, 2);
     TH2F *h_trigger_jet16_vs_jet20 = new TH2F("h_trigger_jet16_vs_jet20", "jet16 vs jet20", 2, 0, 2, 2, 0, 2);
@@ -37,9 +37,11 @@ void plot_pt_spectrum(TString fin="", TString fout="pt_spectrum.root")
 
     // lead pt with exclusivity selections -- other combinations don't work because only jet20 is unprescaled
     TH1F* h_lead_pt_jet16not20 = new TH1F("h_lead_pt_jet16not20", "jet pt spectrum", 100, 0, 200);
+    TH1F* h_lead_pt_jet12not20 = new TH1F("h_lead_pt_jet12not20", "jet pt spectrum", 100, 0, 200);
     TH1F* h_lead_pt_jet12not16not20 = new TH1F("h_lead_pt_jet12not16not20", "jet pt spectrum", 100, 0, 200);
-    TH1F* h_lead_pt_jet8not12not16not20 = new TH1F("h_lead_pt_jet8not12not16not20", "jet pt spectrum", 100, 0, 200);
     TH1F* h_lead_pt_jet8not20 = new TH1F("h_lead_pt_jet8not20", "jet pt spectrum", 100, 0, 200);
+    TH1F* h_lead_pt_jet8not16not20 = new TH1F("h_lead_pt_jet8not16not20", "jet pt spectrum", 100, 0, 200);
+    TH1F* h_lead_pt_jet8not12not16not20 = new TH1F("h_lead_pt_jet8not12not16not20", "jet pt spectrum", 100, 0, 200);
 
      for (Long64_t ient=0; ient<t.GetEntries(); ient++) {
         if (ient % 100000 == 0) 
@@ -71,26 +73,30 @@ void plot_pt_spectrum(TString fin="", TString fout="pt_spectrum.root")
 
         // fill leading jet pt spectrum without exclusivity selections
         if (t.HLT_SingleJet8_NotMBHF2AND==1) 
-            h_lead_pt_jet8->Fill(t.jtpt[0]);
+            h_lead_pt_jet8->Fill(t.rawpt[0]);
         if (t.HLT_SingleJet12_NotMBHF2AND==1) 
-            h_lead_pt_jet12->Fill(t.jtpt[0]);
+            h_lead_pt_jet12->Fill(t.rawpt[0]);
         if (t.HLT_SingleJet16_NotMBHF2AND==1) 
-            h_lead_pt_jet16->Fill(t.jtpt[0]);
+            h_lead_pt_jet16->Fill(t.rawpt[0]);
         if (t.HLT_SingleJet20_NotMBHF2AND==1) 
-            h_lead_pt_jet20->Fill(t.jtpt[0]);
+            h_lead_pt_jet20->Fill(t.rawpt[0]);
 
         // fill leading jet pt spectrum with exclusivity selections
         if (t.HLT_SingleJet20_NotMBHF2AND==1) 
-            h_lead_pt_jet20->Fill(t.jtpt[0]);        
+            h_lead_pt_jet20->Fill(t.rawpt[0]);        
         else if (t.HLT_SingleJet16_NotMBHF2AND==1) 
-            h_lead_pt_jet16not20->Fill(t.jtpt[0]);
+            h_lead_pt_jet16not20->Fill(t.rawpt[0]);
         else if (t.HLT_SingleJet12_NotMBHF2AND==1) 
-            h_lead_pt_jet12not16not20->Fill(t.jtpt[0]);
+            h_lead_pt_jet12not16not20->Fill(t.rawpt[0]);
         else if (t.HLT_SingleJet8_NotMBHF2AND==1) 
-            h_lead_pt_jet8not12not16not20->Fill(t.jtpt[0]);
+            h_lead_pt_jet8not12not16not20->Fill(t.rawpt[0]);
 
         if (t.HLT_SingleJet8_NotMBHF2AND==1 && t.HLT_SingleJet20_NotMBHF2AND==0) 
-            h_lead_pt_jet8not20->Fill(t.jtpt[0]);
+            h_lead_pt_jet8not20->Fill(t.rawpt[0]);
+        if (t.HLT_SingleJet8_NotMBHF2AND==1 && t.HLT_SingleJet20_NotMBHF2AND==0 && t.HLT_SingleJet16_NotMBHF2AND==0) 
+            h_lead_pt_jet8not16not20->Fill(t.rawpt[0]);
+        if (t.HLT_SingleJet12_NotMBHF2AND==1 && t.HLT_SingleJet20_NotMBHF2AND==0) 
+            h_lead_pt_jet12not20->Fill(t.rawpt[0]);
             
     }
 
@@ -103,8 +109,10 @@ void plot_pt_spectrum(TString fin="", TString fout="pt_spectrum.root")
         h->Write();
     }
     for (auto h : {h_lead_pt_jet8, h_lead_pt_jet12, h_lead_pt_jet16, h_lead_pt_jet20,
-                   h_lead_pt_jet16not20, h_lead_pt_jet12not16not20, h_lead_pt_jet8not12not16not20,
-                   h_lead_pt_jet8not20}) {
+                   h_lead_pt_jet16not20, 
+                   h_lead_pt_jet12not20, h_lead_pt_jet12not16not20, 
+                   h_lead_pt_jet8not20, h_lead_pt_jet8not16not20, h_lead_pt_jet8not12not16not20,
+                   }) {
         h->Write();
     }
     f->Close();
