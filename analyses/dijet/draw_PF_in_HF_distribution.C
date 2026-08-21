@@ -21,7 +21,9 @@ void draw_PF_in_HF_distribution()
     gStyle->SetLabelSize(24, "XYZ");
     gStyle->SetTitleSize(28, "XYZ");
 
-    TString sample = "hiforward0_2024rereco";
+    TString sample = "beamB_diffraction_pthat10";
+    // TString sample = "hiemptybx_2024rereco";
+    // TString sample = "hiforwardAll_2024rereco";
     TFile *fin = new TFile("histos/"+sample+"_pf_in_hf_distribution.root");
     TH3F *h_PF_HFp_Emax = (TH3F *) fin->Get("h_PF_HFp_Emax");
     TH3F *h_PF_HFm_Emax = (TH3F *) fin->Get("h_PF_HFm_Emax");
@@ -32,14 +34,16 @@ void draw_PF_in_HF_distribution()
 
     // Normalize
     for (auto h : {h_PF_HFp_Emax_E, h_PF_HFm_Emax_E}) {
-        h->Scale(1/h->Integral());
+        h->Scale(1/h->Integral(1,h->GetNbinsX()+1));
     }
 
     // Format
+    h_PF_HFp_Emax_E->SetLineWidth(2);
     h_PF_HFp_Emax_E->SetLineColor(cmsOrange);
     h_PF_HFp_Emax_E->SetFillColorAlpha(cmsOrange, 0.5);
     h_PF_HFp_Emax_E->SetFillStyle(3004);
 
+    h_PF_HFm_Emax_E->SetLineWidth(2);
     h_PF_HFm_Emax_E->SetLineColor(cmsBlue);
     h_PF_HFm_Emax_E->SetFillColorAlpha(cmsBlue, 0.5);
     h_PF_HFm_Emax_E->SetFillStyle(3005);
@@ -48,7 +52,8 @@ void draw_PF_in_HF_distribution()
     TLegend *leg_E = new TLegend(0.6, 0.7, 0.75, 0.85);
     leg_E->SetBorderSize(0);
     leg_E->SetFillStyle(0);
-    leg_E->SetHeader("Empty bunch crossing");
+    // leg_E->SetHeader("Empty bunch crossing");
+    leg_E->SetHeader("Signal MC events");
     leg_E->AddEntry(h_PF_HFp_Emax_E, "HF+", "f");
     leg_E->AddEntry(h_PF_HFm_Emax_E, "HF-", "f");
     
@@ -61,7 +66,7 @@ void draw_PF_in_HF_distribution()
     
     h_PF_HFp_Emax_E->GetXaxis()->SetTitle("PF E^{max}");
     h_PF_HFp_Emax_E->GetYaxis()->SetTitle("Normalized distribution");
-    h_PF_HFp_Emax_E->GetXaxis()->SetRangeUser(0.,20.);
+    // h_PF_HFp_Emax_E->GetXaxis()->SetRangeUser(0.,20.);
     h_PF_HFp_Emax_E->GetYaxis()->SetRangeUser(1e-6, 1.);
     h_PF_HFp_Emax_E->Draw("hist");
     h_PF_HFm_Emax_E->Draw("hist same");
@@ -89,7 +94,7 @@ void draw_PF_in_HF_distribution()
     
     h_PF_HFp_Emax_Ecum->GetXaxis()->SetTitle("PF E^{max}");
     h_PF_HFp_Emax_Ecum->GetYaxis()->SetTitle("Cumulative distribution");
-    h_PF_HFp_Emax_Ecum->GetXaxis()->SetRangeUser(0.,20.);
+    // h_PF_HFp_Emax_Ecum->GetXaxis()->SetRangeUser(0.,20.);
     h_PF_HFp_Emax_Ecum->GetYaxis()->SetRangeUser(1e-6, 5.);
     h_PF_HFp_Emax_Ecum->Draw("hist");
     h_PF_HFm_Emax_Ecum->Draw("hist same");

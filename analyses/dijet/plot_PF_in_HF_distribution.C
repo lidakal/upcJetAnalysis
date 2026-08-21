@@ -30,12 +30,12 @@ void plot_PF_in_HF_distribution(TString fin="", TString fout="pf_in_hf_distribut
     if (fin != "") {
         t.Add(fin);
     } else {
-        // t.Add("/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV/crab_GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV-forest/260630_071353/0000/HiForestMiniAOD_*.root");
+        // t.Add("/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV/crab_GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV_2024rereco-forest/260709_022358/0000/HiForestMiniAOD_*.root");
         // t.Add("/u/user/lidakal/SE_UserHome/HIForward0/crab_HiForward0_HIRun2023A-PromptReco-v2_ZDCjson_noCCfilter/260624_111153/0000/HiForestMiniAOD_*.root");
         // t.Add("/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV/crab_GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV-forest/260630_071353/0000/HiForestMiniAOD_6*.root");
         // t.Add("/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamB_Pthat10_5p36TeV/crab_GNucleus-Diffraction-PhotonBeamB_Pthat10_5p36TeV-forest/260701_005201/0000/HiForestMiniAOD_*.root");
         // t.Add("/u/user/lidakal/SE_UserHome/HIForward0/crab_HiForward0_HIRun2023A-16Jan2024-v1_ZDCjson_wCCfilter/260629_023836/0000/HiForestMiniAOD_*.root");
-        t.Add("/u/user/lidakal/SE_UserHome/HIEmptyBX/crab_HiEmptyBX_HIRun2023A-16Jan2024-v1_ZDCjson/260706_131125/0000/HiForestMiniAOD_*.root");
+        t.Add("/u/user/lidakal/SE_UserHome/HIEmptyBX/crab_HiEmptyBX_HIRun2023A-16Jan2024-v1_ZDCjson_v2/260710_034030/0000/HiForestMiniAOD_1*.root");
     }
     t.Init();
 
@@ -51,7 +51,9 @@ void plot_PF_in_HF_distribution(TString fin="", TString fout="pf_in_hf_distribut
         // if (ient > 200000) break;
 
         t.GetEntry(ient); 
-        if (!t.passFilter(ient, true, true, true, true, false)) continue;
+        if (!t.passFilter(ient, true, true, true, true, false)) continue; // For HIForward and MC
+        // if (!(t.HLT_HIL1NotBptxOR==1)) continue; // for HIEmptyBX 
+
 
         // index of PF candidate
         int imaxE_HFp = -1;
@@ -66,9 +68,9 @@ void plot_PF_in_HF_distribution(TString fin="", TString fout="pf_in_hf_distribut
         }
 
         if (imaxE_HFp >=0) h_PF_HFp_Emax->Fill(t.pfEta->at(imaxE_HFp), t.pfPhi->at(imaxE_HFp), t.pfE->at(imaxE_HFp), t.weight);
-        else h_PF_HFp_Emax->Fill(0.,0.,0.,0.);
+        else h_PF_HFp_Emax->Fill(0.,0.,0.,t.weight);
         if (imaxE_HFm >=0) h_PF_HFm_Emax->Fill(t.pfEta->at(imaxE_HFm), t.pfPhi->at(imaxE_HFm), t.pfE->at(imaxE_HFm), t.weight);
-        else h_PF_HFm_Emax->Fill(0.,0.,0.,0.);
+        else h_PF_HFm_Emax->Fill(0.,0.,0.,t.weight);
     }
 
     TFile *f = new TFile(fout, "recreate");
