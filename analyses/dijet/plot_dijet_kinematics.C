@@ -12,6 +12,7 @@ void plot_dijet_kinematics(TString fin="", TString fout="dijet_kinematics.root")
         t.Add(fin);
     } else {
         t.Add("/u/user/lidakal/SE_UserHome/HIForward0/crab_HiForward0_HIRun2023A-16Jan2024-v1_ZDCjson_wCCfilter/260629_023836/0000/HiForestMiniAOD_*.root");
+        // t.Add("/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV/crab_GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV-forest_v2/260806_034151/0000/HiForestMiniAOD_*.root");
     }
     t.Init();
 
@@ -25,7 +26,11 @@ void plot_dijet_kinematics(TString fin="", TString fout="dijet_kinematics.root")
     TH1F *h_y = new TH1F("h_y", "dijet rapidity", 100, -5, 5);
     TH1F *h_PHI = new TH1F("h_PHI", "PHI(QT,PT)", 100, 0, TMath::Pi());
     TH1F *h_PHI_signed = new TH1F("h_PHI_signed", "PHI(QT,PT) signed", 100, -TMath::Pi(), TMath::Pi());
-    TH2F *h_cos2PHI_vs_QT = new TH2F("h_cos2PHI_vs_QT", "cos(2*PHI) vs QT", 100, 0, 100, 100, -1, 1);
+    TH2F *h_cos2PHI_vs_QT = new TH2F("h_cos2PHI_vs_QT", "cos(2*PHI) vs QT", 50, 0, 100, 100, -1, 1);
+    TH3F *h_cos2PHI_vs_QT_vs_y = new TH3F("h_cos2PHI_vs_QT_vs_y", "x=qt, y=dijet rapidity, z=cos(2*PHI)", 50, 0, 100, 100, -5, 5, 100, -1, 1);
+    TH3F *h_cos2PHI_vs_QT_vs_x = new TH3F("h_cos2PHI_vs_QT_vs_x", "x=qt, y=xBj, z=cos(2*PHI)", 50, 0, 100, 100, 0., 1., 100, -1, 1);
+    TH3F *h_cos2PHI_vs_Minv_vs_y = new TH3F("h_cos2PHI_vs_Minv_vs_y", "x=dijet invariant mass, y=dijet rapidity, z=cos(2*PHI)", 100, 0, 200, 100, -5, 5, 100, -1, 1);
+    TH1F *h_Minv_after_cuts = new TH1F("h_Minv_after_cuts", "dijet invariant mass after all cuts", 100, 0, 200);
 
     // Random number generator for randomizing jet order
     std::random_device rd;  
@@ -42,15 +47,17 @@ void plot_dijet_kinematics(TString fin="", TString fout="dijet_kinematics.root")
 
         t.GetEntry(ient); 
 
-        if (!t.passFilter(ient)) continue;
+        // hlt, zdc, dijet, add. activity, rapidity gap selections
+        if (!t.passFilter(ient, true, true, true, true, true)) continue;
+        double weight = t.weight;
 
-        h_eta1_eta2->Fill(t.jteta[0], t.jteta[1]);
+        h_eta1_eta2->Fill(t.jteta[0], t.jteta[1], weight);
         double dphi = std::acos(std::cos(t.jtphi[0] - t.jtphi[1]));
         double deta = std::abs(t.jteta[0] - t.jteta[1]);
         double dR = std::sqrt(deta*deta + dphi*dphi);
-        h_dphi->Fill(dphi);
-        h_deta->Fill(deta);
-        h_dR->Fill(dR);
+        h_dphi->Fill(dphi, weight);
+        h_deta->Fill(deta, weight);
+        h_dR->Fill(dR, weight);
 
         jet1.SetPtEtaPhiM(t.jtpt[0], t.jteta[0], t.jtphi[0], t.jtm[0]);
         jet2.SetPtEtaPhiM(t.jtpt[1], t.jteta[1], t.jtphi[1], t.jtm[1]);
@@ -90,15 +97,22 @@ void plot_dijet_kinematics(TString fin="", TString fout="dijet_kinematics.root")
                 //   << ", PHI: " << PHI << ", PHI_signed: " << PHI_signed 
                 //   << std::endl;
 
-        h_QT->Fill(qt);
-        h_PT->Fill(pt);
-        h_Minv->Fill(minv);
-        h_y->Fill(y);
+        h_QT->Fill(qt, weight);
+        h_PT->Fill(pt, weight);
+        h_Minv->Fill(minv, weight);
+        h_y->Fill(y, weight);
 
         if (qt < pt) {
-            h_PHI->Fill(PHI);
-            h_PHI_signed->Fill(PHI_signed);
-            h_cos2PHI_vs_QT->Fill(qt, cos2PHI);
+            h_Minv_after_cuts->Fill(minv, weight);
+            h_PHI->Fill(PHI, weight);
+            h_PHI_signed->Fill(PHI_signed, weight);
+            h_cos2PHI_vs_QT->Fill(qt, cos2PHI, weight);
+            h_cos2PHI_vs_QT_vs_y->Fill(qt, y, cos2PHI, weight);
+            h_cos2PHI_vs_Minv_vs_y->Fill(minv, y, cos2PHI, weight);
+
+            double sqrtsNN = 5.36;
+            double x = (minv / sqrtsNN) * std::exp(-std::abs(y));
+            h_cos2PHI_vs_QT_vs_x->Fill(qt, x, cos2PHI, weight);
         }
     }
 
@@ -114,5 +128,9 @@ void plot_dijet_kinematics(TString fin="", TString fout="dijet_kinematics.root")
     h_PHI->Write();
     h_PHI_signed->Write();
     h_cos2PHI_vs_QT->Write();
+    h_cos2PHI_vs_QT_vs_y->Write();
+    h_Minv_after_cuts->Write();
+    h_cos2PHI_vs_QT_vs_x->Write();
+    h_cos2PHI_vs_Minv_vs_y->Write();
     f->Close();
 } 
