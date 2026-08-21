@@ -29,9 +29,13 @@ class tree {
         TH2D* hvetomap_;
         TString JECPath = "";
         const static Int_t MAXJETS = 100;
+        const double PS8 = 1.85138;
+        const double PS12 = 1.6999;
+        const double PS16 = 1.13367;
 
         // jet analyzer variables
         Int_t nref = 0;
+        Float_t rawpt[MAXJETS];
         Float_t jtpt[MAXJETS];
         Float_t jteta[MAXJETS];
         Float_t jtphi[MAXJETS];
@@ -140,6 +144,7 @@ void tree::Init() {
 
     // jet analyzer branches
     t->SetBranchAddress("nref", &nref);
+    t->SetBranchAddress("rawpt", rawpt);
     t->SetBranchAddress("jtpt", jtpt);
     t->SetBranchAddress("jteta", jteta);
     t->SetBranchAddress("jtphi", jtphi);
@@ -220,7 +225,13 @@ bool tree::passFilter(Long64_t ientry, bool hltcond=true, bool zdccond=true, boo
     
     // hlt
     if (hltcond) {
-        if (!HLT_SingleJet8_NotMBHF2AND) return false;
+        if (isMC) {
+            if (HLT_SingleJet16_NotMBHF2AND==0) return false;
+        } else {
+            if (HLT_SingleJet20_NotMBHF2AND==1) weight = 1.;
+            else if (HLT_SingleJet16_NotMBHF2AND==1) weight = PS16;
+            else return false;
+        }
         // if (HLT_ZDC1nOr) return false;
         // std::cout << "\tHLT passed" << std::endl;
     }
@@ -263,29 +274,16 @@ bool tree::passFilter(Long64_t ientry, bool hltcond=true, bool zdccond=true, boo
 
     // rapidity gap
     if (rapgapcond) {
-        TLorentzVector jet1, jet2;
-        jet1.SetPtEtaPhiM(jtpt[0], jteta[0], jtphi[0], jtm[0]);
-        jet2.SetPtEtaPhiM(jtpt[1], jteta[1], jtphi[1], jtm[1]);
-        auto dijet = jet1 + jet2;
-        // double dijet_eta = dijet.Eta();
-
-        // double maxE_forward = 0;
-        // double maxE_backward = 0;
-        // for (int i=0; i<nPF; i++) {        
-        //     // check for same hemisphere as dijet
-        //     bool is_forward = (pfEta->at(i) * dijet_eta > 0);
-
-        //     if (is_forward) {
-        //         if (std::abs(pfEta->at(i)) > 3)
-        //             if (pfE->at(i) > maxE_forward) maxE_forward = pfE->at(i);
-        //     } else {
-        //         if (std::abs(pfEta->at(i)) > 3)
-        //             if (pfE->at(i) > maxE_backward) maxE_backward = pfE->at(i);
-        //     }
-        // }
-        // if (maxE_backward > 8) return false;
-        // add DetaB > 1.2
-        // add DetaB > DetaF
+        // Empty HF
+        double maxE = 10.; // GeV
+        double mideta = (jteta[0]+jteta[1])/2.;
+        for (int i=0; i<nPF; i++) {        
+            // both sides
+            // if ((std::abs(pfEta->at(i)) > 3) && (pfE->at(i) > maxE)) return false;
+            
+            // opposite side only
+            if ((std::abs(pfEta->at(i)) > 3) && (pfE->at(i) > maxE) && ((pfEta->at(i)*mideta) < 0)) return false;
+        }
     }
 
     // std::cout << "\tAll selections passed for entry " << ientry << std::endl;
