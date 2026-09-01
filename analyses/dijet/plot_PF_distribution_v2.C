@@ -31,8 +31,8 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
     if (fin != "") {
         t.Add(fin);
     } else {
-        // t.Add("/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV/crab_GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV-forest/260630_071353/0000/HiForestMiniAOD_6*.root");
-        // t.Add("/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamB_Pthat10_5p36TeV/crab_GNucleus-Diffraction-PhotonBeamB_Pthat10_5p36TeV-forest_v2/260813_082421/0000/HiForestMiniAOD_*.root");
+        // fin = "/u/user/lidakal/SE_UserHome/GNucleus-QCD_Pthat10_5p36TeV_pythia8/crab_GNucleus-QCD_Pthat10_5p36TeV-forest_v2/260831_090609/0000/HiForestMiniAOD_1*.root";
+        // fin = "/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamB_Pthat10_5p36TeV/crab_GNucleus-Diffraction-PhotonBeamB_Pthat10_5p36TeV-forest_v2/260813_082421/0000/HiForestMiniAOD_*.root";
         // fin = "/u/user/lidakal/SE_UserHome/HIEmptyBX/crab_HiEmptyBX_HIRun2023A-16Jan2024-v1_ZDCjson_v2/260710_034030/0000/HiForestMiniAOD_100.root";
         fin = "/u/user/lidakal/SE_UserHome/HIForward0/crab_HiForward0_HIRun2023A-16Jan2024-v1_ZDCjson_wCCfilter/260629_023836/0000/HiForestMiniAOD_*.root";
         t.Add(fin);
@@ -110,7 +110,11 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
     TH2F *h_rapgap_fb_Etamax_tracker = new TH2F("h_rapgap_fb_Etamax_tracker", "x=deta_forward, y=deta_backward", ndeta_bins_s, deta_bins_s, ndeta_bins_s, deta_bins_s);
     TH2F *h_rapgap_pm_Etamax_tracker = new TH2F("h_rapgap_pm_Etamax_tracker", "x=deta_forward, y=deta_backward", ndeta_bins_s, deta_bins_s, ndeta_bins_s, deta_bins_s);
 
-    double PFPtMin = 0.2; // for maxEta
+    double PFEmin = 0.5; // for maxEta
+    double PFPtmin = 0.2; // for maxEta
+    double trackerLim = 3.0; // for rapidity gap in tracker
+    bool   chargedOnly = true; // for rapidity gap in tracker
+
     TLorentzVector jet1, jet2, pfcand;
     for (Long64_t ient=0; ient<t.GetEntries(); ient++) {
         if (ient % 100000 == 0) 
@@ -128,7 +132,7 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
             if (!(t.HLT_HIL1NotBptxOR==1)) continue;
         } else {
             // hlt, zdc, dijet, add. activity, rapidity gap selections
-            if (!t.passFilter(ient, true, true, true, true, false)) continue; 
+            if (!t.passFilter(ient, true, true, true, true, true)) continue; 
         
         }
         double weight = t.weight;
@@ -204,6 +208,7 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
             double pfPhi = t.pfPhi->at(i);
             double pfE   = t.pfE->at(i);
             double pfPt  = t.pfPt->at(i);
+            int    pfId  = t.pfId->at(i);
 
             // all candidates
             h_PF->Fill(pfEta, pfPhi, pfE, weight);
@@ -241,13 +246,13 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
             // maxEta is signed
             double maxEta_plus = (imaxEta_plus >= 0) ? t.pfEta->at(imaxEta_plus) : 0;
             double maxEta_minus = (imaxEta_minus >= 0) ? t.pfEta->at(imaxEta_minus) : 0;
-            double maxEta_forward = (imaxEta_forward >= 0) ? t.pfEta->at(imaxEta_forward) : 0;
-            double maxEta_backward = (imaxEta_backward >= 0) ? t.pfEta->at(imaxEta_backward) : 0;
+            double maxEta_forward = (imaxEta_forward >= 0) ? t.pfEta->at(imaxEta_forward) : midEta;
+            double maxEta_backward = (imaxEta_backward >= 0) ? t.pfEta->at(imaxEta_backward) : midEta;
 
             double maxEta_plus_tracker = (imaxEta_plus_tracker >= 0) ? t.pfEta->at(imaxEta_plus_tracker) : 0;
             double maxEta_minus_tracker = (imaxEta_minus_tracker >= 0) ? t.pfEta->at(imaxEta_minus_tracker) : 0;
-            double maxEta_forward_tracker = (imaxEta_forward_tracker >= 0) ? t.pfEta->at(imaxEta_forward_tracker) : 0;
-            double maxEta_backward_tracker = (imaxEta_backward_tracker >= 0) ? t.pfEta->at(imaxEta_backward_tracker) : 0;
+            double maxEta_forward_tracker = (imaxEta_forward_tracker >= 0) ? t.pfEta->at(imaxEta_forward_tracker) : midEta;
+            double maxEta_backward_tracker = (imaxEta_backward_tracker >= 0) ? t.pfEta->at(imaxEta_backward_tracker) : midEta;
 
             // Go over plus/minus
             if (pfEta > 0) {
@@ -256,7 +261,7 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
 
                 // max E
                 if (pfE > maxE_plus) imaxE_plus = i;
-                if ((std::abs(pfEta) < 3.) && (pfE > maxE_plus_tracker)) imaxE_plus_tracker = i;
+                if (((!chargedOnly)||t.pfIsCharged(pfId)) && (std::abs(pfEta) < trackerLim) && (pfE > maxE_plus_tracker)) imaxE_plus_tracker = i;
 
                 if (std::abs(pfEta) < 1.3) {
                     if (pfE > maxE_plus_BB) imaxE_plus_BB = i;
@@ -269,9 +274,9 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
                 }
 
                 // max Eta
-                if (pfPt > PFPtMin) {
+                if (pfPt > PFPtmin) {
                     if (std::abs(pfEta) > std::abs(maxEta_plus)) imaxEta_plus = i;
-                    if ((std::abs(pfEta) < 3.) && (std::abs(pfEta) > std::abs(maxEta_plus_tracker))) imaxEta_plus_tracker = i;
+                    if (((!chargedOnly)||t.pfIsCharged(pfId)) && (std::abs(pfEta) < trackerLim) && (std::abs(pfEta) > std::abs(maxEta_plus_tracker))) imaxEta_plus_tracker = i;
                 }
             } else {
                 nPF_minus++;
@@ -279,7 +284,7 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
 
                 // max E
                 if (pfE > maxE_minus) imaxE_minus = i;
-                if ((std::abs(pfEta) < 3.) && (pfE > maxE_minus_tracker)) imaxE_minus_tracker = i;
+                if (((!chargedOnly)||t.pfIsCharged(pfId)) && (std::abs(pfEta) < trackerLim) && (pfE > maxE_minus_tracker)) imaxE_minus_tracker = i;
 
                 if (std::abs(pfEta) < 1.3) {
                     if (pfE > maxE_minus_BB) imaxE_minus_BB = i;
@@ -292,9 +297,9 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
                 }
 
                 // max Eta
-                if (pfPt > PFPtMin) {
+                if (pfPt > PFPtmin) {
                     if (std::abs(pfEta) > std::abs(maxEta_minus)) imaxEta_minus = i;
-                    if ((std::abs(pfEta) < 3.) && (std::abs(pfEta) > std::abs(maxEta_minus_tracker))) imaxEta_minus_tracker = i;
+                    if (((!chargedOnly)||t.pfIsCharged(pfId)) && (std::abs(pfEta) < trackerLim) && (std::abs(pfEta) > std::abs(maxEta_minus_tracker))) imaxEta_minus_tracker = i;
                 }
             }
 
@@ -305,7 +310,7 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
 
                 // max E
                 if (pfE > maxE_forward) imaxE_forward = i;
-                if (((std::abs(pfEta) < 3.)) && (pfE > maxE_forward_tracker)) imaxE_forward_tracker = i;
+                if (((!chargedOnly)||t.pfIsCharged(pfId)) && ((std::abs(pfEta) < trackerLim)) && (pfE > maxE_forward_tracker)) imaxE_forward_tracker = i;
 
                 if (std::abs(pfEta) < 1.3) {
                     if (pfE > maxE_forward_BB) imaxE_forward_BB = i;
@@ -318,9 +323,9 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
                 }
 
                 // max Eta
-                if (pfPt > PFPtMin) {
+                if (pfPt > PFPtmin) {
                     if (pfEta > maxEta_forward) imaxEta_forward = i;
-                    if ((std::abs(pfEta) < 3.) && (pfEta > maxEta_forward_tracker)) imaxEta_forward_tracker = i;
+                    if (((!chargedOnly)||t.pfIsCharged(pfId)) && (std::abs(pfEta) < trackerLim) && (pfEta > maxEta_forward_tracker)) imaxEta_forward_tracker = i;
                 }
             } else if (pfEta < etaMin) {
                 nPF_backward++;
@@ -328,7 +333,7 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
 
                 // max E
                 if (pfE > maxE_backward) imaxE_backward = i;
-                if (((std::abs(pfEta) < 3.)) && (pfE > maxE_backward_tracker)) imaxE_backward_tracker = i;
+                if (((!chargedOnly)||t.pfIsCharged(pfId)) && ((std::abs(pfEta) < trackerLim)) && (pfE > maxE_backward_tracker)) imaxE_backward_tracker = i;
 
                 if (std::abs(pfEta) < 1.3) {
                     if (pfE > maxE_backward_BB) imaxE_backward_BB = i;
@@ -341,9 +346,9 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
                 }
 
                 // max Eta
-                if (pfPt > PFPtMin) {
+                if (pfPt > PFPtmin) {
                     if (pfEta < maxEta_backward) imaxEta_backward = i;
-                    if ((std::abs(pfEta) < 3.) && (pfEta < maxEta_backward_tracker)) imaxEta_backward_tracker = i;
+                    if (((!chargedOnly)||t.pfIsCharged(pfId)) && (std::abs(pfEta) < trackerLim) && (pfEta < maxEta_backward_tracker)) imaxEta_backward_tracker = i;
                 }            
             }
 
@@ -378,42 +383,42 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
 
         // plus/minus rapidity gap in tracker 
         double deta_plus_Emax_tracker = 0.;
-        if (etaMax < 3.) {
-            if (etaMax > 0.) deta_plus_Emax_tracker = 3. - etaMax;
-            else deta_plus_Emax_tracker = 3.;
+        if (etaMax < trackerLim) {
+            if (etaMax > 0.) deta_plus_Emax_tracker = trackerLim - etaMax;
+            else deta_plus_Emax_tracker = trackerLim;
         } 
         if (imaxE_plus_tracker>=0) {
             h_PF_plus_Emax_tracker->Fill(t.pfEta->at(imaxE_plus_tracker), t.pfPhi->at(imaxE_plus_tracker), t.pfE->at(imaxE_plus_tracker), t.weight);
-            deta_plus_Emax_tracker = 3. - t.pfEta->at(imaxE_plus_tracker);
+            deta_plus_Emax_tracker = trackerLim - t.pfEta->at(imaxE_plus_tracker);
         }
         double deta_minus_Emax_tracker = 0.;
-        if (etaMin > -3.) {
-            if (etaMin < 0.) deta_minus_Emax_tracker = 3. + etaMin;
-            else deta_minus_Emax_tracker = 3.;
+        if (etaMin > -trackerLim) {
+            if (etaMin < 0.) deta_minus_Emax_tracker = trackerLim + etaMin;
+            else deta_minus_Emax_tracker = trackerLim;
         }
         if (imaxE_minus_tracker>=0) {
             h_PF_minus_Emax_tracker->Fill(t.pfEta->at(imaxE_minus_tracker), t.pfPhi->at(imaxE_minus_tracker), t.pfE->at(imaxE_minus_tracker), t.weight);
-            deta_minus_Emax_tracker = t.pfEta->at(imaxE_minus_tracker) + 3.;
+            deta_minus_Emax_tracker = t.pfEta->at(imaxE_minus_tracker) + trackerLim;
         }
         h_rapgap_pm_Emax_tracker->Fill(deta_plus_Emax_tracker, deta_minus_Emax_tracker, weight);
 
         double deta_plus_Etamax_tracker = 0.;
-        if (etaMax < 3.) {
-            if (etaMax > 0.) deta_plus_Etamax_tracker = 3. - etaMax;
-            else deta_plus_Etamax_tracker = 3.;
+        if (etaMax < trackerLim) {
+            if (etaMax > 0.) deta_plus_Etamax_tracker = trackerLim - etaMax;
+            else deta_plus_Etamax_tracker = trackerLim;
         } 
         if (imaxEta_plus_tracker>=0) {
             h_PF_plus_Etamax_tracker->Fill(t.pfEta->at(imaxEta_plus_tracker), t.pfPhi->at(imaxEta_plus_tracker), t.pfE->at(imaxEta_plus_tracker), t.weight);
-            deta_plus_Etamax_tracker = 3. - t.pfEta->at(imaxEta_plus_tracker);
+            deta_plus_Etamax_tracker = trackerLim - t.pfEta->at(imaxEta_plus_tracker);
         }
         double deta_minus_Etamax_tracker = 0.;
-        if (etaMin > -3.) {
-            if (etaMin < 0.) deta_minus_Etamax_tracker = 3. + etaMin;
-            else deta_minus_Etamax_tracker = 3.;
+        if (etaMin > -trackerLim) {
+            if (etaMin < 0.) deta_minus_Etamax_tracker = trackerLim + etaMin;
+            else deta_minus_Etamax_tracker = trackerLim;
         }
         if (imaxEta_minus_tracker>=0) {
             h_PF_minus_Etamax_tracker->Fill(t.pfEta->at(imaxEta_minus_tracker), t.pfPhi->at(imaxEta_minus_tracker), t.pfE->at(imaxEta_minus_tracker), t.weight);
-            deta_minus_Etamax_tracker = t.pfEta->at(imaxEta_minus_tracker) + 3.;
+            deta_minus_Etamax_tracker = t.pfEta->at(imaxEta_minus_tracker) + trackerLim;
         }
         h_rapgap_pm_Etamax_tracker->Fill(deta_plus_Etamax_tracker, deta_minus_Etamax_tracker, weight);
 
@@ -432,12 +437,12 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
         if (midEta < 0.) std::swap(deta_forward_Emax, deta_backward_Emax);
         h_rapgap_fb_Emax->Fill(deta_forward_Emax, deta_backward_Emax, weight);
 
-        double deta_forward_Etamax = 5.2 - etaMax;
+        double deta_forward_Etamax = 5.2 - midEta;
         if (imaxEta_forward>=0) {
             h_PF_forward_Etamax->Fill(t.pfEta->at(imaxEta_forward), t.pfPhi->at(imaxEta_forward), t.pfE->at(imaxEta_forward), t.weight);
             deta_forward_Etamax = 5.2 - t.pfEta->at(imaxEta_forward);
         }
-        double deta_backward_Etamax = etaMin + 5.2;
+        double deta_backward_Etamax = 5.2 + midEta;
         if (imaxEta_backward>=0) {
             h_PF_backward_Etamax->Fill(t.pfEta->at(imaxEta_backward), t.pfPhi->at(imaxEta_backward), t.pfE->at(imaxEta_backward), t.weight);
             deta_backward_Etamax = t.pfEta->at(imaxEta_backward) + 5.2;
@@ -446,28 +451,28 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
         h_rapgap_fb_Etamax->Fill(deta_forward_Etamax, deta_backward_Etamax, weight);
 
         // forward/backward rapidity gap in tracker 
-        double deta_forward_Emax_tracker = (etaMax < 3.) ? 3. - etaMax : 0.;
+        double deta_forward_Emax_tracker = (etaMax < trackerLim) ? trackerLim - etaMax : 0.;
         if (imaxE_forward_tracker>=0) {
             h_PF_forward_Emax_tracker->Fill(t.pfEta->at(imaxE_forward_tracker), t.pfPhi->at(imaxE_forward_tracker), t.pfE->at(imaxE_forward_tracker), t.weight);
-            deta_forward_Emax_tracker = 3. - t.pfEta->at(imaxE_forward_tracker);
+            deta_forward_Emax_tracker = trackerLim - t.pfEta->at(imaxE_forward_tracker);
         }
-        double deta_backward_Emax_tracker = (etaMin > -3.) ? 3. + etaMin : 0.;
+        double deta_backward_Emax_tracker = (etaMin > -trackerLim) ? trackerLim + etaMin : 0.;
         if (imaxE_backward_tracker>=0) {
             h_PF_backward_Emax_tracker->Fill(t.pfEta->at(imaxE_backward_tracker), t.pfPhi->at(imaxE_backward_tracker), t.pfE->at(imaxE_backward_tracker), t.weight);
-            deta_backward_Emax_tracker = t.pfEta->at(imaxE_backward_tracker) + 3.;
+            deta_backward_Emax_tracker = t.pfEta->at(imaxE_backward_tracker) + trackerLim;
         }
         if (midEta < 0.) std::swap(deta_forward_Emax_tracker, deta_backward_Emax_tracker);
         h_rapgap_fb_Emax_tracker->Fill(deta_forward_Emax_tracker, deta_backward_Emax_tracker, weight);
 
-        double deta_forward_Etamax_tracker = (etaMax < 3.) ? 3. - etaMax : 0.;
+        double deta_forward_Etamax_tracker = trackerLim - midEta;
         if (imaxEta_forward_tracker>=0) {
             h_PF_forward_Etamax_tracker->Fill(t.pfEta->at(imaxEta_forward_tracker), t.pfPhi->at(imaxEta_forward_tracker), t.pfE->at(imaxEta_forward_tracker), t.weight);
-            deta_forward_Etamax_tracker = 3. - t.pfEta->at(imaxEta_forward_tracker);
+            deta_forward_Etamax_tracker = trackerLim - t.pfEta->at(imaxEta_forward_tracker);
         }
-        double deta_backward_Etamax_tracker = (etaMin > -3.) ? 3. + etaMin : 0.;
+        double deta_backward_Etamax_tracker = trackerLim + midEta;
         if (imaxEta_backward_tracker>=0) {
             h_PF_backward_Etamax_tracker->Fill(t.pfEta->at(imaxEta_backward_tracker), t.pfPhi->at(imaxEta_backward_tracker), t.pfE->at(imaxEta_backward_tracker), t.weight);
-            deta_backward_Etamax_tracker = t.pfEta->at(imaxEta_backward_tracker) + 3.;
+            deta_backward_Etamax_tracker = t.pfEta->at(imaxEta_backward_tracker) + trackerLim;
         }
         if (midEta < 0.) std::swap(deta_forward_Etamax_tracker, deta_backward_Etamax_tracker);
         h_rapgap_fb_Etamax_tracker->Fill(deta_forward_Etamax_tracker, deta_backward_Etamax_tracker, weight);
