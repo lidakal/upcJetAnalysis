@@ -17,6 +17,7 @@ void plot_pt_spectrum_MC(TString fin="", TString fout="pt_spectrum_mc.root")
     TH2F *h_lead_pt_Jet12 = new TH2F("h_lead_pt_Jet12", "x=pt, y=passJet12", 100, 0, 200, 2, 0, 2);
     TH2F *h_lead_pt_Jet16 = new TH2F("h_lead_pt_Jet16", "x=pt, y=passJet16", 100, 0, 200, 2, 0, 2);
     TH2F *h_lead_pt_Jet20 = new TH2F("h_lead_pt_Jet20", "x=pt, y=passJet20", 100, 0, 200, 2, 0, 2);
+    TH2F *h_lead_pt_NotMB = new TH2F("h_lead_pt_NotMB", "x=pt, y=passNotMB", 100, 0, 200, 2, 0, 2);
 
      for (Long64_t ient=0; ient<t.GetEntries(); ient++) {
         if (ient % 100000 == 0) 
@@ -35,11 +36,12 @@ void plot_pt_spectrum_MC(TString fin="", TString fout="pt_spectrum_mc.root")
         h_lead_pt_Jet12->Fill(t.jtpt[0], t.HLT_SingleJet12_NotMBHF2AND);
         h_lead_pt_Jet16->Fill(t.jtpt[0], t.HLT_SingleJet16_NotMBHF2AND);
         h_lead_pt_Jet20->Fill(t.jtpt[0], t.HLT_SingleJet20_NotMBHF2AND);
-    
+        h_lead_pt_NotMB->Fill(t.jtpt[0], t.HLT_NotMBHF2AND);
+
     }
 
     TFile *f = new TFile(fout, "recreate");
-    for (auto h : {h_lead_pt_Jet8, h_lead_pt_Jet12, h_lead_pt_Jet16, h_lead_pt_Jet20}) {
+    for (auto h : {h_lead_pt_Jet8, h_lead_pt_Jet12, h_lead_pt_Jet16, h_lead_pt_Jet20, h_lead_pt_NotMB}) {
         h->Write();
     }
     f->Close();
