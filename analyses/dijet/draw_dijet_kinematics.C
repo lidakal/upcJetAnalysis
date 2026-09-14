@@ -7,10 +7,13 @@ void draw_dijet_kinematics()
     gStyle->SetLabelSize(28, "XYZ");
     gStyle->SetLegendTextSize(28);
 
-    TString sample = "beamB_diffraction_pthat10";
+    TString sample = "beamA_diffraction_pthat10";
     // TString sample = "hiforwardAll_2024rereco";
 
-    TFile *f = new TFile("histos/" + sample + "_dijet_kinematics.root");
+    // TString suffix = "";
+    TString suffix = "_oppHF_oppEC2_trkLim2p5_ptgr0p2_chOnly_jetID_jetVM";
+
+    TFile *f = new TFile("histos/" + sample + "_dijet_kinematics" + suffix + ".root");
     TH1F *h_QT = (TH1F*)f->Get("h_QT");
     TH1F *h_PT = (TH1F*)f->Get("h_PT");
     TH1F *h_Minv = (TH1F*)f->Get("h_Minv");
@@ -36,7 +39,7 @@ void draw_dijet_kinematics()
 
     for (auto h : { h_cos2PHI_vs_QT_vs_y }) {
         h->RebinX(2); 
-        h->RebinY(2); 
+        h->RebinY(5); 
         h->RebinZ(5);
     }
 
@@ -75,8 +78,8 @@ void draw_dijet_kinematics()
     h_y->GetYaxis()->SetTitle("N_{events}");
     h_y->Draw();
 
-    c_kinematics->Print("plots/" + sample + "_dijet_kinematics.pdf");
-    c_kinematics->Print("plots/" + sample + "_dijet_kinematics.png");
+    c_kinematics->Print("plots/ddijet_kinematics/" + sample + "_dijet_kinematics.pdf");
+    // c_kinematics->Print("plots/ddijet_kinematics/" + sample + "_dijet_kinematics.png");
 
     // dN/dPHI vs PHI, <cos(2PHI)> vs QT
     TCanvas *c_observables = new TCanvas("c_observables", "c_observables", 2400, 800);
@@ -106,7 +109,7 @@ void draw_dijet_kinematics()
     p_cos2PHI_vs_QT->SetLineWidth(2);
     p_cos2PHI_vs_QT->Draw("hist");
 
-    TLegend *leg_observables_y = new TLegend(0.2, 0.7, 0.8, 0.85);
+    TLegend *leg_observables_y = new TLegend(0.2, 0.65, 0.8, 0.85);
     leg_observables_y->SetBorderSize(0);
     leg_observables_y->SetNColumns(2);
     std::vector<double> y_bins = {-2.5, -2., -1.5, -1., -0.5, 0., 0.5, 1., 1.5, 2., 2.5};
@@ -123,7 +126,7 @@ void draw_dijet_kinematics()
         TProfile *p_cos2PHI_vs_QT_in_y_bin = h_cos2PHI_vs_QT_in_y_bin->ProfileX(Form("p_cos2PHI_vs_QT_in_y_bin_%d", i));
         p_cos2PHI_vs_QT_in_y_bin->SetLineColor(color);
         p_cos2PHI_vs_QT_in_y_bin->SetLineWidth(1);
-        leg_observables_y->AddEntry(p_cos2PHI_vs_QT_in_y_bin, Form("%.0f < y < %.0f", y_min, y_max), "l");
+        leg_observables_y->AddEntry(p_cos2PHI_vs_QT_in_y_bin, Form("%.1f < y < %.1f", y_min, y_max), "l");
         p_cos2PHI_vs_QT_in_y_bin->Draw("hist same");
 
         h_cos2PHI_vs_QT_vs_y->GetYaxis()->SetRange(1, h_cos2PHI_vs_QT_vs_y->GetNbinsY()); // reset
@@ -145,7 +148,7 @@ void draw_dijet_kinematics()
     p_cos2PHI_vs_y->SetLineWidth(2);
     p_cos2PHI_vs_y->Draw("hist");
 
-    TLegend *leg_observables_qt = new TLegend(0.2, 0.7, 0.8, 0.85);
+    TLegend *leg_observables_qt = new TLegend(0.2, 0.65, 0.8, 0.85);
     leg_observables_qt->SetBorderSize(0);
     leg_observables_qt->SetNColumns(2);
     std::vector<double> qt_bins = {0, 5, 10, 15, 20, 25, 30};
@@ -159,6 +162,7 @@ void draw_dijet_kinematics()
         TH2D *h_cos2PHI_vs_y_in_QT_bin = (TH2D*) h_cos2PHI_vs_QT_vs_y->Project3D(Form("h_cos2PHI_vs_y_in_QT_bin_%d_zy", i));
         TProfile *p_cos2PHI_vs_y_in_QT_bin = h_cos2PHI_vs_y_in_QT_bin->ProfileX(Form("p_cos2PHI_vs_y_in_QT_bin_%d", i));
         p_cos2PHI_vs_y_in_QT_bin->SetLineColor(color);
+        // p_cos2PHI_vs_y_in_QT_bin->RebinX(2);
         leg_observables_qt->AddEntry(p_cos2PHI_vs_y_in_QT_bin, Form("%.0f < QT < %.0f", qt_min, qt_max), "l");
 
         p_cos2PHI_vs_y_in_QT_bin->Draw("hist same");
@@ -169,8 +173,8 @@ void draw_dijet_kinematics()
     p_cos2PHI_vs_y->Draw("hist same");
     leg_observables_qt->Draw();
 
-    c_observables->Print("plots/" + sample + "_dijet_observables.pdf");
-    c_observables->Print("plots/" + sample + "_dijet_observables.png");
+    c_observables->Print("plots/ddijet_kinematics/" + sample + "_dijet_observables.pdf");
+    // c_observables->Print("plots/ddijet_kinematics/" + sample + "_dijet_observables.png");
 
 
 }

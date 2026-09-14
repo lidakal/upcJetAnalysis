@@ -32,27 +32,34 @@ void draw_header_simulation()
 
 void draw_rapidity_gap()
 {
+    gStyle->SetPalette(kViridis);
     gStyle->SetLegendTextSize(24);
     gStyle->SetLabelSize(24, "XYZ");
     gStyle->SetTitleSize(28, "XYZ");
 
-    // TString sample = "beamB_diffraction_pthat10";
-    TString sample = "hiforwardAll_2024rereco";
-    TFile *fin = new TFile("histos/"+sample+"_pf_distribution_tracker_bothHF.root"); // requires plot_PF_distribution*.C
+    TString sample = "beamB_diffraction_pthat10";
+    // TString sample = "hiforwardAll_2024rereco";
+    TString suffix = "_oppHF_oppEC2_trkLim2p5_ptgr0p2_chOnly_jetID_jetVM";
+    TFile *fin = new TFile("histos/"+sample+"_pf_distribution"+suffix+".root"); // requires plot_PF_distribution*.C
 
-    TH2F *h_rapgap_Emax = (TH2F *) fin->Get("h_rapgap_Emax");
-    TH2F *h_rapgap_Etamax = (TH2F *) fin->Get("h_rapgap_Etamax");
+    TH2F *h_rapgap_Emax_tracker = (TH2F *) fin->Get("h_rapgap_fb_Emax_tracker");
+    TH2F *h_rapgap_Etamax_tracker = (TH2F *) fin->Get("h_rapgap_fb_Etamax_tracker");
+    TH3F *h_Nch_vs_rapgap_Etamax_tracker_wSwap = (TH3F *) fin->Get("h_Nch_vs_rapgap_fb_Etamax_tracker_wSwap");
+    h_Nch_vs_rapgap_Etamax_tracker_wSwap->GetXaxis()->SetRange(0, h_Nch_vs_rapgap_Etamax_tracker_wSwap->GetNbinsX()+1);
+    TH2F *h_rapgap_Etamax_tracker_wSwap = (TH2F *) h_Nch_vs_rapgap_Etamax_tracker_wSwap->Project3D("zy");
 
     // Format
     for (auto h : {
-        h_rapgap_Emax, h_rapgap_Etamax
+        h_rapgap_Emax_tracker, h_rapgap_Etamax_tracker, h_rapgap_Etamax_tracker_wSwap
     }) {
-        // h->Scale(1/h->Integral());
-        // h->GetZaxis()->SetRange(0., 1.);
-        h->GetXaxis()->SetTitle("FRG");
-        h->GetYaxis()->SetTitle("BRG");
-        // h->GetZaxis()->SetTitle("Normalized entries (per event)");
+        h->Scale(1/h->Integral());
+        h->GetZaxis()->SetRangeUser(0., 0.05);
+        h->GetXaxis()->SetTitle("#Delta#eta^{+}");
+        h->GetYaxis()->SetTitle("#Delta#eta^{-}");
+        h->GetZaxis()->SetTitle("Normalized entries per event");
         h->GetZaxis()->SetTitleOffset(1.7);
+        h->GetXaxis()->SetRangeUser(0., 5.);
+        h->GetYaxis()->SetRangeUser(0., 5.);
     }
 
     // Draw
@@ -62,8 +69,9 @@ void draw_rapidity_gap()
     c_rapgap_Emax->SetLeftMargin(0.15);
     c_rapgap_Emax->SetRightMargin(0.2);
 
-    h_rapgap_Emax->Draw("colz");
-    draw_header_simulation();
+    h_rapgap_Emax_tracker->Draw("colz");
+    if (sample.Contains("hiforward")) draw_header();
+    else draw_header_simulation();
 
     c_rapgap_Emax->Print("plots/"+sample+"_rapgap_Emax.pdf");
 
@@ -73,8 +81,23 @@ void draw_rapidity_gap()
     c_rapgap_Etamax->SetLeftMargin(0.15);
     c_rapgap_Etamax->SetRightMargin(0.2);
 
-    h_rapgap_Etamax->Draw("colz");
-    draw_header_simulation();
+    h_rapgap_Etamax_tracker->Draw("colz");
+    if (sample.Contains("hiforward")) draw_header();
+    else draw_header_simulation();
 
     c_rapgap_Etamax->Print("plots/"+sample+"_rapgap_Etamax.pdf");
+    
+    TCanvas *c_rapgap_Etamax_wSwap = new TCanvas("c_rapgap_Etamax_wSwap", "x=FRG, y=BRG, Etamax", 800, 700);
+    c_rapgap_Etamax_wSwap->SetTopMargin(0.1);
+    c_rapgap_Etamax_wSwap->SetBottomMargin(0.15);
+    c_rapgap_Etamax_wSwap->SetLeftMargin(0.15);
+    c_rapgap_Etamax_wSwap->SetRightMargin(0.2);
+
+    h_rapgap_Etamax_tracker_wSwap->GetXaxis()->SetTitle("#Delta#eta^{F}");
+    h_rapgap_Etamax_tracker_wSwap->GetYaxis()->SetTitle("#Delta#eta^{B}");
+    h_rapgap_Etamax_tracker_wSwap->Draw("colz");
+    if (sample.Contains("hiforward")) draw_header();
+    else draw_header_simulation();
+
+    c_rapgap_Etamax_wSwap->Print("plots/"+sample+"_rapgap_Etamax_wSwap.pdf");
 }

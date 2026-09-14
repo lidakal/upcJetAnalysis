@@ -7,7 +7,9 @@ void draw_dijet_kinematics_data_vs_MC()
     gStyle->SetLabelSize(28, "XYZ");
     gStyle->SetLegendTextSize(28);
 
-    TFile *f_data = new TFile("histos/merged_hiforward0to4_2024rereco_dijet_kinematics.root");
+    TString suffix = "_oppHF_oppEC2_trkLim2p5_ptgr0p2_chOnly_jetID_jetVM";
+    TFile *f_data = new TFile("histos/hiforwardAll_2024rereco_dijet_kinematics"+suffix+".root");
+    std::cout << "DATA: Loaded " << f_data->GetName() << std::endl;
     TH1F *h_QT_data = (TH1F*)f_data->Get("h_QT")->Clone("h_QT_data");
     TH1F *h_PT_data = (TH1F*)f_data->Get("h_PT")->Clone("h_PT_data");
     TH1F *h_Minv_data = (TH1F*)f_data->Get("h_Minv")->Clone("h_Minv_data");
@@ -16,7 +18,8 @@ void draw_dijet_kinematics_data_vs_MC()
     TH1F *h_PHI_signed_data = (TH1F*)f_data->Get("h_PHI_signed")->Clone("h_PHI_signed_data");
     TH2F *h_cos2PHI_vs_QT_data = (TH2F*)f_data->Get("h_cos2PHI_vs_QT")->Clone("h_cos2PHI_vs_QT_data");
 
-    TFile *f_beamA = new TFile("histos/beamA_diffraction_pthat10_dijet_kinematics.root");
+    TFile *f_beamA = new TFile("histos/beamA_diffraction_pthat10_dijet_kinematics"+suffix+".root");
+    std::cout << "BEAM A: Loaded " << f_beamA->GetName() << std::endl;
     TH1F *h_QT_beamA = (TH1F*)f_beamA->Get("h_QT")->Clone("h_QT_beamA");
     TH1F *h_PT_beamA = (TH1F*)f_beamA->Get("h_PT")->Clone("h_PT_beamA");
     TH1F *h_Minv_beamA = (TH1F*)f_beamA->Get("h_Minv")->Clone("h_Minv_beamA");
@@ -25,7 +28,8 @@ void draw_dijet_kinematics_data_vs_MC()
     TH1F *h_PHI_signed_beamA = (TH1F*)f_beamA->Get("h_PHI_signed")->Clone("h_PHI_signed_beamA");
     TH2F *h_cos2PHI_vs_QT_beamA = (TH2F*)f_beamA->Get("h_cos2PHI_vs_QT")->Clone("h_cos2PHI_vs_QT_beamA");
 
-    TFile *f_beamB = new TFile("histos/beamB_diffraction_pthat10_dijet_kinematics.root");
+    TFile *f_beamB = new TFile("histos/beamB_diffraction_pthat10_dijet_kinematics"+suffix+".root");
+    std::cout << "BEAM B: Loaded " << f_beamB->GetName() << std::endl;
     TH1F *h_QT_beamB = (TH1F*)f_beamB->Get("h_QT")->Clone("h_QT_beamB");
     TH1F *h_PT_beamB = (TH1F*)f_beamB->Get("h_PT")->Clone("h_PT_beamB");
     TH1F *h_Minv_beamB = (TH1F*)f_beamB->Get("h_Minv")->Clone("h_Minv_beamB");
@@ -49,7 +53,7 @@ void draw_dijet_kinematics_data_vs_MC()
     }
 
     for (auto h : { h_cos2PHI_vs_QT_data, h_cos2PHI_vs_QT_beamA, h_cos2PHI_vs_QT_beamB }) {
-        h->RebinX(5);
+        h->RebinX(4);
     }
 
     // QT + PT, Minv, y
@@ -131,15 +135,22 @@ void draw_dijet_kinematics_data_vs_MC()
     h_y_beamA->SetLineColor(cmsBlue);
     h_y_beamB->Scale(1.0 / h_y_beamB->Integral(), "width");
     h_y_beamB->SetLineColor(cmsLightBlue);
+    TH1F *h_y_beamAplusB = (TH1F *) h_y_beamA->Clone("h_y_beamAplusB");
+    h_y_beamAplusB->Add(h_y_beamB);
+    h_y_beamAplusB->Scale(1.0 / h_y_beamAplusB->Integral(), "width");
+    h_y_beamAplusB->SetLineColor(cmsLightGray);
     h_y_data->GetXaxis()->SetTitle("Dijet rapidity");
     h_y_data->GetYaxis()->SetTitle("Normalized entries");
     h_y_data->Draw();
     h_y_beamA->Draw("same hist");
     h_y_beamB->Draw("same hist");
-    legend_m->Draw();
+    h_y_beamAplusB->Draw("same hist");
+    TLegend *legend_y = (TLegend *) legend_m->Clone("legend_y");
+    legend_y->AddEntry(h_y_beamAplusB, "MC (beamA+beamB)", "l");
+    legend_y->Draw();
 
-    c_kinematics->Print("plots/data_vs_MC_dijet_kinematics.pdf");
-    c_kinematics->Print("plots/data_vs_MC_dijet_kinematics.png");
+    c_kinematics->Print("plots/dijet_kinematics/data_vs_MC_dijet_kinematics.pdf");
+    // c_kinematics->Print("plots/dijet_kinematics/data_vs_MC_dijet_kinematics.png");
 
     // dN/dPHI vs PHI, <cos(2PHI)> vs QT
     TCanvas *c_observables = new TCanvas("c_observables", "c_observables", 2400, 800);
@@ -172,7 +183,7 @@ void draw_dijet_kinematics_data_vs_MC()
     TProfile *p_cos2PHI_vs_QT_data = h_cos2PHI_vs_QT_data->ProfileX();
     p_cos2PHI_vs_QT_data->SetMaximum(2.);
     p_cos2PHI_vs_QT_data->SetMinimum(-1.);
-    p_cos2PHI_vs_QT_data->GetXaxis()->SetRangeUser(0., 30.);
+    p_cos2PHI_vs_QT_data->GetXaxis()->SetRangeUser(0., 40.);
     p_cos2PHI_vs_QT_data->SetLineColor(cmsViolet);
     p_cos2PHI_vs_QT_data->SetMarkerColor(cmsViolet);
     p_cos2PHI_vs_QT_data->SetMarkerStyle(20);
@@ -187,6 +198,6 @@ void draw_dijet_kinematics_data_vs_MC()
     p_cos2PHI_vs_QT_beamB->Draw("same hist");
     legend_m->Draw();
 
-    c_observables->Print("plots/data_vs_MC_dijet_observables.pdf");
-    c_observables->Print("plots/data_vs_MC_dijet_observables.png");
+    c_observables->Print("plots/dijet_kinematics/data_vs_MC_dijet_observables.pdf");
+    // c_observables->Print("plots/dijet_kinematics/data_vs_MC_dijet_observables.png");
 }

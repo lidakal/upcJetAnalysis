@@ -21,12 +21,17 @@ void draw_PF_in_HF_distribution()
     gStyle->SetLabelSize(24, "XYZ");
     gStyle->SetTitleSize(28, "XYZ");
 
-    TString sample = "beamB_diffraction_pthat10";
-    // TString sample = "hiemptybx_2024rereco";
+    // TString sample = "beamB_diffraction_pthat10";
+    TString sample = "hiemptybx_2024rereco";
     // TString sample = "hiforwardAll_2024rereco";
-    TFile *fin = new TFile("histos/"+sample+"_pf_in_hf_distribution.root");
-    TH3F *h_PF_HFp_Emax = (TH3F *) fin->Get("h_PF_HFp_Emax");
-    TH3F *h_PF_HFm_Emax = (TH3F *) fin->Get("h_PF_HFm_Emax");
+
+    TFile *fin = new TFile("histos/"+sample+"_pf_distribution_noRG_v2.root");
+    TH3F *h_PF_HFp_Emax = (TH3F *) fin->Get("h_PF_plus_HF_Emax");
+    TH3F *h_PF_HFm_Emax = (TH3F *) fin->Get("h_PF_minus_HF_Emax");
+
+    // TFile *fin = new TFile("histos/"+sample+"_pf_in_hf_distribution.root");
+    // TH3F *h_PF_HFp_Emax = (TH3F *) fin->Get("h_PF_HFp_Emax");
+    // TH3F *h_PF_HFm_Emax = (TH3F *) fin->Get("h_PF_HFm_Emax");
 
     // Make projections
     TH1F *h_PF_HFp_Emax_E = (TH1F *) h_PF_HFp_Emax->ProjectionZ("h_PF_HFp_Emax_E");
@@ -74,8 +79,8 @@ void draw_PF_in_HF_distribution()
     leg_E->Draw();
     draw_header();
 
-    c_E->Print("plots/"+sample+"_pf_in_hf_distribution.pdf");
-    c_E->Print("plots/"+sample+"_pf_in_hf_distribution.png");
+    // c_E->Print("plots/"+sample+"_pf_in_hf_distribution.pdf");
+    // c_E->Print("plots/"+sample+"_pf_in_hf_distribution.png");
 
     // Cumulative distribution 
     TH1F *h_PF_HFp_Emax_Ecum = (TH1F *) h_PF_HFp_Emax_E->Clone("h_PF_HFp_Emax_Ecum");
@@ -102,7 +107,7 @@ void draw_PF_in_HF_distribution()
     leg_E->Draw();
     draw_header();
 
-    c_Ecum->Print("plots/"+sample+"_pf_in_hf_cumulative_distribution.pdf");
-    c_Ecum->Print("plots/"+sample+"_pf_in_hf_cumulative_distribution.png");
+    // c_Ecum->Print("plots/"+sample+"_pf_in_hf_cumulative_distribution.pdf");
+    // c_Ecum->Print("plots/"+sample+"_pf_in_hf_cumulative_distribution.png");
 
 }
