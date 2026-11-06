@@ -37,8 +37,8 @@ void draw_rapidity_gap()
     gStyle->SetLabelSize(24, "XYZ");
     gStyle->SetTitleSize(28, "XYZ");
 
-    TString sample = "beamB_diffraction_pthat10";
-    // TString sample = "hiforwardAll_2024rereco";
+    // TString sample = "beamB_diffraction_pthat10";
+    TString sample = "hiforwardAll_2024rereco";
     TString suffix = "_oppHF_oppEC2_trkLim2p5_ptgr0p2_chOnly_jetID_jetVM";
     TFile *fin = new TFile("histos/"+sample+"_pf_distribution"+suffix+".root"); // requires plot_PF_distribution*.C
 
@@ -46,14 +46,14 @@ void draw_rapidity_gap()
     TH2F *h_rapgap_Etamax_tracker = (TH2F *) fin->Get("h_rapgap_fb_Etamax_tracker");
     TH3F *h_Nch_vs_rapgap_Etamax_tracker_wSwap = (TH3F *) fin->Get("h_Nch_vs_rapgap_fb_Etamax_tracker_wSwap");
     h_Nch_vs_rapgap_Etamax_tracker_wSwap->GetXaxis()->SetRange(0, h_Nch_vs_rapgap_Etamax_tracker_wSwap->GetNbinsX()+1);
-    TH2F *h_rapgap_Etamax_tracker_wSwap = (TH2F *) h_Nch_vs_rapgap_Etamax_tracker_wSwap->Project3D("zy");
+    TH2F *h_rapgap_Etamax_tracker_wSwap = (TH2F *) h_Nch_vs_rapgap_Etamax_tracker_wSwap->Project3D("zy"); // I accidentally had frg, brg swapped until job 244229, use yz
 
     // Format
     for (auto h : {
         h_rapgap_Emax_tracker, h_rapgap_Etamax_tracker, h_rapgap_Etamax_tracker_wSwap
     }) {
         h->Scale(1/h->Integral());
-        h->GetZaxis()->SetRangeUser(0., 0.05);
+        h->GetZaxis()->SetRangeUser(0., 0.025);
         h->GetXaxis()->SetTitle("#Delta#eta^{+}");
         h->GetYaxis()->SetTitle("#Delta#eta^{-}");
         h->GetZaxis()->SetTitle("Normalized entries per event");

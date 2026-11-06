@@ -3,7 +3,7 @@
 #include <math.h>
 #include <random>
 
-void plot_dijet_kinematics(TString fin="", TString fout="dijet_kinematics.root") 
+void plot_dijet_kinematics_ref(TString fin="", TString fout="dijet_kinematics_ref.root") 
 {
     std::cout << "Input file: " << fin << std::endl;
     std::cout << "Output file: " << fout << std::endl;
@@ -12,15 +12,15 @@ void plot_dijet_kinematics(TString fin="", TString fout="dijet_kinematics.root")
     if (fin != "") {
         t.Add(fin);
     } else {
-        t.Add("/u/user/lidakal/SE_UserHome/HIForward0/crab_HiForward0_HIRun2023A-16Jan2024-v1_ZDCjson_wCCfilter/260629_023836/0000/HiForestMiniAOD_100.root");
-        // t.Add("/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV/crab_GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV-forest_v2/260806_034151/0000/HiForestMiniAOD_*.root");
+        t.Add("/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV_v2/crab_GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV_v2-forest_v2/260908_062207/0000/HiForestMiniAOD_1*.root");
     }
     t.Init();
 
     TH2F *h_pt1_pt2 = new TH2F("h_pt1_pt2", "x=pt1, y=pt2", npt_bins, pt_bins, npt_bins, pt_bins);
     TH2F *h_eta1_eta2 = new TH2F("h_eta1_eta2", "x=eta1, y=eta2", neta_bins_s, eta_bins_s, neta_bins_s, eta_bins_s);
-    TH3F *h_eta1_eta2_midEta = new TH3F("h_eta1_eta2_midEta", "x=eta1, y=eta2, y=midEta", neta_bins_s, eta_bins_s, neta_bins_s, eta_bins_s, neta_bins_s, eta_bins_s);
-    TH3F *h_eta1_eta2_dijetEta = new TH3F("h_eta1_eta2_dijetEta", "x=eta1, y=eta2, y=dijetEta", neta_bins_s, eta_bins_s, neta_bins_s, eta_bins_s, neta_bins_s, eta_bins_s);
+    TH3F *h_y1_y2_dijetY = new TH3F("h_y1_y2_dijetY", "x=y1, y=y2, z=dijetY", neta_bins, eta_bins, neta_bins, eta_bins, neta_bins, eta_bins);
+    TH3F *h_eta1_eta2_midEta = new TH3F("h_eta1_eta2_midEta", "x=eta1, y=eta2, z=midEta", neta_bins_s, eta_bins_s, neta_bins_s, eta_bins_s, neta_bins_s, eta_bins_s);
+    TH3F *h_eta1_eta2_dijetEta = new TH3F("h_eta1_eta2_dijetEta", "x=eta1, y=eta2, z=dijetEta", neta_bins_s, eta_bins_s, neta_bins_s, eta_bins_s, neta_bins_s, eta_bins_s);
     TH2F *h_midEta_dijetEta = new TH2F("h_midEta_dijetEta", "x=midEta, y=dijetEta", neta_bins_s, eta_bins_s, neta_bins_s, eta_bins_s);
     TH1F *h_dphi = new TH1F("h_dphi", "dijet #Delta#phi", ndphi_bins, dphi_bins);
     TH1F *h_deta = new TH1F("h_deta", "dijet #Delta#eta", ndeta_bins, deta_bins);
@@ -29,15 +29,15 @@ void plot_dijet_kinematics(TString fin="", TString fout="dijet_kinematics.root")
     TH1F *h_PT = new TH1F("h_PT", "dijet PT", nQT_bins, QT_bins);
     TH2F *h_QT_PT = new TH2F("h_QT_PT", "x=qt, y=pt", nQT_bins, QT_bins, nQT_bins, QT_bins);
     TH1F *h_Minv = new TH1F("h_Minv", "dijet invariant mass", nMinv_bins, Minv_bins);
-    TH1F *h_y = new TH1F("h_y", "dijet rapidity", neta_bins_s, eta_bins_s);
+    TH1F *h_y = new TH1F("h_y", "dijet rapidity", neta_bins, eta_bins);
     TH1F *h_absy = new TH1F("h_absy", "dijet rapidity", 50, 0, 5);
     TH1F *h_PHI = new TH1F("h_PHI", "PHI(QT,PT)", nPHI_bins, PHI_bins);
     TH1F *h_PHI_signed = new TH1F("h_PHI_signed", "PHI(QT,PT) signed", nPHI_signed_bins, PHI_signed_bins);
     TH2F *h_cos2PHI_vs_QT = new TH2F("h_cos2PHI_vs_QT", "cos(2*PHI) vs QT", nQT_bins, QT_bins, ncos2PHI_bins, cos2PHI_bins);
-    TH3F *h_cos2PHI_vs_QT_vs_y = new TH3F("h_cos2PHI_vs_QT_vs_y", "x=qt, y=dijet rapidity, z=cos(2*PHI)", nQT_bins, QT_bins, neta_bins_s, eta_bins_s, ncos2PHI_bins, cos2PHI_bins);
+    TH3F *h_cos2PHI_vs_QT_vs_y = new TH3F("h_cos2PHI_vs_QT_vs_y", "x=qt, y=dijet rapidity, z=cos(2*PHI)", nQT_bins, QT_bins, neta_bins, eta_bins, ncos2PHI_bins, cos2PHI_bins);
     TH3F *h_cos2PHI_vs_QT_vs_x1 = new TH3F("h_cos2PHI_vs_QT_vs_x1", "x=qt, y=xBj(with -|yjj|), z=cos(2*PHI)", nQT_bins, QT_bins, nx_bins, x_bins, ncos2PHI_bins, cos2PHI_bins);
     TH3F *h_cos2PHI_vs_QT_vs_x2 = new TH3F("h_cos2PHI_vs_QT_vs_x2", "x=qt, y=xBj(with +|yjj|), z=cos(2*PHI)", nQT_bins, QT_bins, nx_bins, x_bins, ncos2PHI_bins, cos2PHI_bins);
-    TH3F *h_cos2PHI_vs_Minv_vs_y = new TH3F("h_cos2PHI_vs_Minv_vs_y", "x=dijet invariant mass, y=dijet rapidity, z=cos(2*PHI)", nMinv_bins, Minv_bins, neta_bins_s, eta_bins_s, ncos2PHI_bins, cos2PHI_bins);
+    TH3F *h_cos2PHI_vs_Minv_vs_y = new TH3F("h_cos2PHI_vs_Minv_vs_y", "x=dijet invariant mass, y=dijet rapidity, z=cos(2*PHI)", nMinv_bins, Minv_bins, neta_bins, eta_bins, ncos2PHI_bins, cos2PHI_bins);
     TH1F *h_Minv_after_cuts = new TH1F("h_Minv_after_cuts", "dijet invariant mass after all cuts", nMinv_bins, Minv_bins);
 
     // Random number generator for randomizing jet order
@@ -56,7 +56,7 @@ void plot_dijet_kinematics(TString fin="", TString fout="dijet_kinematics.root")
         t.GetEntry(ient); 
 
         // hlt, zdc, dijet, add. activity, rapidity gap selections
-        if (!t.passFilterGen(ient, true, true, true, true, true)) continue; 
+        if (!t.passFilterRef(ient, false, false, true, false, false)) continue; 
         double weight = t.weight;
 
         h_pt1_pt2->Fill(t.refpt[0], t.refpt[1], weight);
@@ -112,6 +112,8 @@ void plot_dijet_kinematics(TString fin="", TString fout="dijet_kinematics.root")
         h_eta1_eta2_dijetEta->Fill(t.refeta[0], t.refeta[1], dijetEta, weight);        
         h_midEta_dijetEta->Fill(midEta, dijetEta, weight);
 
+        h_y1_y2_dijetY->Fill(jet1.Rapidity(), jet2.Rapidity(), y, weight);
+
         h_QT->Fill(qt, weight);
         h_PT->Fill(pt, weight);
         h_QT_PT->Fill(pt, qt, weight);
@@ -128,9 +130,11 @@ void plot_dijet_kinematics(TString fin="", TString fout="dijet_kinematics.root")
             h_cos2PHI_vs_Minv_vs_y->Fill(minv, y, cos2PHI, weight);
 
             double sqrtsNN = 5360.; // GeV
-            double x1 = (minv / sqrtsNN) * std::exp(-std::abs(y));
+            // double x1 = (minv / sqrtsNN) * std::exp(-std::abs(y));
+            double x1 = (minv / sqrtsNN) * std::exp(-y);
             h_cos2PHI_vs_QT_vs_x1->Fill(qt, x1, cos2PHI, weight);
-            double x2 = (minv / sqrtsNN) * std::exp(+std::abs(y));
+            // double x2 = (minv / sqrtsNN) * std::exp(+std::abs(y));
+            double x2 = (minv / sqrtsNN) * std::exp(+y);
             h_cos2PHI_vs_QT_vs_x2->Fill(qt, x2, cos2PHI, weight);
 
             if (x1>1) std::cout << "ient = " << ient 
@@ -139,6 +143,8 @@ void plot_dijet_kinematics(TString fin="", TString fout="dijet_kinematics.root")
                                 << "\n\tWarning: x2 > 1, x2 = " << x2 << ", minv = " << minv << ", y = " << y << std::endl;
         }
     }
+
+    t.EntryCount();
 
     TFile *f = new TFile(fout, "recreate");
     h_dphi->Write();
@@ -152,6 +158,7 @@ void plot_dijet_kinematics(TString fin="", TString fout="dijet_kinematics.root")
     h_Minv->Write();
     h_y->Write();
     h_absy->Write();
+    h_y1_y2_dijetY->Write();
     h_PHI->Write();
     h_PHI_signed->Write();
     h_cos2PHI_vs_QT->Write();

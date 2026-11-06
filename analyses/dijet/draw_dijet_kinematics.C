@@ -7,11 +7,12 @@ void draw_dijet_kinematics()
     gStyle->SetLabelSize(28, "XYZ");
     gStyle->SetLegendTextSize(28);
 
-    TString sample = "beamA_diffraction_pthat10";
-    // TString sample = "hiforwardAll_2024rereco";
+    // TString sample = "beamB_diffraction_pthat10";
+    TString sample = "hiforwardAll_2024rereco";
 
     // TString suffix = "";
-    TString suffix = "_oppHF_oppEC2_trkLim2p5_ptgr0p2_chOnly_jetID_jetVM";
+    // TString suffix = "_oppHF_oppEC2_trkLim2p5_ptgr0p2_chOnly_jetID_jetVM_noAbsY";
+    TString suffix = "_0n0n_oppHF";
 
     TFile *f = new TFile("histos/" + sample + "_dijet_kinematics" + suffix + ".root");
     TH1F *h_QT = (TH1F*)f->Get("h_QT");
@@ -38,7 +39,7 @@ void draw_dijet_kinematics()
     }
 
     for (auto h : { h_cos2PHI_vs_QT_vs_y }) {
-        h->RebinX(2); 
+        h->RebinX(5); 
         h->RebinY(5); 
         h->RebinZ(5);
     }
@@ -78,8 +79,8 @@ void draw_dijet_kinematics()
     h_y->GetYaxis()->SetTitle("N_{events}");
     h_y->Draw();
 
-    c_kinematics->Print("plots/ddijet_kinematics/" + sample + "_dijet_kinematics.pdf");
-    // c_kinematics->Print("plots/ddijet_kinematics/" + sample + "_dijet_kinematics.png");
+    c_kinematics->Print("plots/dijet_kinematics/" + sample + "_dijet_kinematics.pdf");
+    // c_kinematics->Print("plots/dijet_kinematics/" + sample + "_dijet_kinematics.png");
 
     // dN/dPHI vs PHI, <cos(2PHI)> vs QT
     TCanvas *c_observables = new TCanvas("c_observables", "c_observables", 2400, 800);
@@ -104,15 +105,15 @@ void draw_dijet_kinematics()
     p_cos2PHI_vs_QT->SetMarkerColor(kBlack);
     p_cos2PHI_vs_QT->GetXaxis()->SetTitle("QT (GeV)");
     p_cos2PHI_vs_QT->GetYaxis()->SetTitle("<cos(2#Phi)>");
-    p_cos2PHI_vs_QT->GetXaxis()->SetRangeUser(0, 30);
-    p_cos2PHI_vs_QT->GetYaxis()->SetRangeUser(-1, 2);
+    p_cos2PHI_vs_QT->GetXaxis()->SetRangeUser(0, 40);
+    p_cos2PHI_vs_QT->GetYaxis()->SetRangeUser(-0.5, 2);
     p_cos2PHI_vs_QT->SetLineWidth(2);
-    p_cos2PHI_vs_QT->Draw("hist");
+    p_cos2PHI_vs_QT->Draw("same");
 
     TLegend *leg_observables_y = new TLegend(0.2, 0.65, 0.8, 0.85);
     leg_observables_y->SetBorderSize(0);
     leg_observables_y->SetNColumns(2);
-    std::vector<double> y_bins = {-2.5, -2., -1.5, -1., -0.5, 0., 0.5, 1., 1.5, 2., 2.5};
+    std::vector<double> y_bins = {-1., 0., 1., 2., 2.5};
     for (int i = 0; i < y_bins.size() - 1; ++i) {
         // if (i>0) break;
         Int_t color = cms_palette[i];
@@ -132,8 +133,8 @@ void draw_dijet_kinematics()
         h_cos2PHI_vs_QT_vs_y->GetYaxis()->SetRange(1, h_cos2PHI_vs_QT_vs_y->GetNbinsY()); // reset
     }
 
-    p_cos2PHI_vs_QT->Draw("hist same");
-    leg_observables_y->AddEntry(p_cos2PHI_vs_QT, "-2.5 < y < 2.5", "l");
+    p_cos2PHI_vs_QT->Draw("same");
+    leg_observables_y->AddEntry(p_cos2PHI_vs_QT, "-1.0 < y < 2.5", "l");
     leg_observables_y->Draw();
 
     c_observables->cd(3);
@@ -143,15 +144,15 @@ void draw_dijet_kinematics()
     p_cos2PHI_vs_y->SetMarkerColor(kBlack);
     p_cos2PHI_vs_y->GetXaxis()->SetTitle("Dijet y");
     p_cos2PHI_vs_y->GetYaxis()->SetTitle("<cos(2#Phi)>");
-    p_cos2PHI_vs_y->GetXaxis()->SetRangeUser(-2.5, 2.5);
-    p_cos2PHI_vs_y->GetYaxis()->SetRangeUser(-1, 2);
+    p_cos2PHI_vs_y->GetXaxis()->SetRangeUser(-1, 2.5);
+    p_cos2PHI_vs_y->GetYaxis()->SetRangeUser(-0.5, 2);
     p_cos2PHI_vs_y->SetLineWidth(2);
-    p_cos2PHI_vs_y->Draw("hist");
+    p_cos2PHI_vs_y->Draw("same");
 
     TLegend *leg_observables_qt = new TLegend(0.2, 0.65, 0.8, 0.85);
     leg_observables_qt->SetBorderSize(0);
     leg_observables_qt->SetNColumns(2);
-    std::vector<double> qt_bins = {0, 5, 10, 15, 20, 25, 30};
+    std::vector<double> qt_bins = {0, 5, 10, 15, 20, 30, 40};
     for (int i = 0; i < qt_bins.size() - 1; ++i) {
         // if (i>0) break;
         Int_t color = cms_palette[i];
@@ -170,11 +171,11 @@ void draw_dijet_kinematics()
         h_cos2PHI_vs_QT_vs_y->GetXaxis()->SetRange(1, h_cos2PHI_vs_QT_vs_y->GetNbinsX()); // reset
     }
     leg_observables_qt->AddEntry(p_cos2PHI_vs_y, "0 < QT < 30 GeV", "l");
-    p_cos2PHI_vs_y->Draw("hist same");
+    p_cos2PHI_vs_y->Draw("same");
     leg_observables_qt->Draw();
 
-    c_observables->Print("plots/ddijet_kinematics/" + sample + "_dijet_observables.pdf");
-    // c_observables->Print("plots/ddijet_kinematics/" + sample + "_dijet_observables.png");
+    c_observables->Print("plots/dijet_kinematics/" + sample + "_dijet_observables.pdf");
+    // c_observables->Print("plots/dijet_kinematics/" + sample + "_dijet_observables.png");
 
 
 }

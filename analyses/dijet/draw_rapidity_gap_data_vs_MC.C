@@ -97,7 +97,7 @@ void draw_rapidity_gap_data_vs_MC()
     leg->Draw();
     draw_header();
 
-    // c_PFJetDeta->Print("plots/data_vs_MC_PFJetDeta_b.pdf");
+    c_PFJetDeta->Print("plots/data_vs_MC_PFJetDeta_b.pdf");
 
     TCanvas *c_rapgap = new TCanvas("c_rapgap", "BRG", 800, 700);
     c_rapgap->SetTopMargin(0.1);
@@ -121,5 +121,5 @@ void draw_rapidity_gap_data_vs_MC()
     line->SetLineStyle(2);
     line->Draw();
 
-    // c_rapgap->Print("plots/data_vs_MC_rapgap_b.pdf");
+    c_rapgap->Print("plots/data_vs_MC_rapgap_b.pdf");
 }

@@ -24,11 +24,11 @@ void draw_PF_distribution_per_region_FB()
     // std::vector<TString> regions = {"HF"};
     std::vector<TString> regions = {"BB", "EC1", "EC2", "HF"};
 
-    TString sample = "beamA_diffraction_pthat10";
+    // TString sample = "beamA_diffraction_pthat10";
     // TString sample = "hiemptybx_2024rereco";
-    // TString sample = "hiforwardAll_2024rereco";
+    TString sample = "hiforwardAll_2024rereco";
 
-    TFile *fin = new TFile("histos/"+sample+"_pf_distribution_noRG_jetID_jetVM.root"); // requires plot_PF_distribution_v2.C
+    TFile *fin = new TFile("histos/"+sample+"_pf_distribution_XnXn_noRG_trkLim3p0.root"); // requires plot_PF_distribution_v2.C
 
     for (auto region : regions) {
         TH3F *h_PF_forward_Emax = (TH3F *) fin->Get("h_PF_forward_"+region+"_Emax");
@@ -138,6 +138,26 @@ void draw_PF_distribution_per_region_FB()
 
                 if (found_forward && found_backward) break;
             }
+        } else if (region.Contains("HF")) {
+            double Ethr_HFp = 9.5; // GeV
+            double Ethr_HFm = 9.;
+
+            TLine *line_plus = new TLine(Ethr_HFp, ymin_Ecum, Ethr_HFp, ymax_Ecum);
+            line_plus->SetLineColor(color_forward);
+            line_plus->Draw();
+            TLine *line_minus = new TLine(Ethr_HFm, ymin_Ecum, Ethr_HFm, ymax_Ecum);
+            line_minus->SetLineColor(color_backward);
+            line_minus->Draw();
+        } else if (region.Contains("EC2")) {
+            double Ethr_EC2p = 3.5;
+            double Ethr_EC2m = 3.5;
+
+            TLine *line_plus = new TLine(Ethr_EC2p, ymin_Ecum, Ethr_EC2p, ymax_Ecum);
+            line_plus->SetLineColor(color_forward);
+            line_plus->Draw();
+            TLine *line_minus = new TLine(Ethr_EC2m, ymin_Ecum, Ethr_EC2m, ymax_Ecum);
+            line_minus->SetLineColor(color_backward);
+            line_minus->Draw();
         }
 
         c_Ecum->Print("plots/pf_distributions/"+sample+"_pf_cumulative_distribution_"+region+"_FB.pdf");

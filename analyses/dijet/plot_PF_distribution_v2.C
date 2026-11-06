@@ -31,11 +31,11 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
     if (fin != "") {
         t.Add(fin);
     } else {
-        fin  = "/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV_v2/crab_GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV_v2-forest_v2/260908_062207/0000/HiForestMiniAOD_*.root";
+        // fin  = "/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV_v2/crab_GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV_v2-forest_v2/260908_062207/0000/HiForestMiniAOD_*.root";
         // fin = "/u/user/lidakal/SE_UserHome/GNucleus-QCD_Pthat10_5p36TeV_pythia8/crab_GNucleus-QCD_Pthat10_5p36TeV-forest_v2/260831_090609/0000/HiForestMiniAOD_1*.root";
-        // fin = "/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamB_Pthat10_5p36TeV/crab_GNucleus-Diffraction-PhotonBeamB_Pthat10_5p36TeV-forest_v2/260813_082421/0000/HiForestMiniAOD_*.root";
+        // fin = "/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamB_Pthat10_5p36TeV/crab_GNucleus-Diffraction-PhotonBeamB_Pthat10_5p36TeV-forest_v2/260813_082421/0000/HiForestMiniAOD_1*.root";
         // fin = "/u/user/lidakal/SE_UserHome/HIEmptyBX/crab_HiEmptyBX_HIRun2023A-16Jan2024-v1_ZDCjson_v2/260710_034030/0000/HiForestMiniAOD_100.root";
-        // fin = "/u/user/lidakal/SE_UserHome/HIForward0/crab_HiForward0_HIRun2023A-16Jan2024-v1_ZDCjson_wCCfilter/260629_023836/0000/HiForestMiniAOD_*.root";
+        fin = "/u/user/lidakal/SE_UserHome/HIForward0/crab_HiForward0_HIRun2023A-16Jan2024-v1_ZDCjson_wCCfilter/260629_023836/0000/HiForestMiniAOD_*.root";
         t.Add(fin);
     }
     t.Init();
@@ -135,7 +135,7 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
 
     double PFEmin = 0.5; // for maxEta
     double PFPtmin = 0.2; // for maxEta
-    double trackerLim = 2.5; // for rapidity gap in tracker
+    double trackerLim = 3.; // for rapidity gap in tracker
     bool   chargedOnly = true; // for rapidity gap in tracker
 
     TLorentzVector jet1, jet2, pfcand;
@@ -155,8 +155,7 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
             if (!(t.HLT_HIL1NotBptxOR==1)) continue;
         } else {
             // hlt, zdc, dijet, add. activity, rapidity gap selections
-            if (!t.passFilter(ient, true, true, true, true, false)) continue; 
-        
+            if (!t.passFilter(ient, true, true, true, true, true)) continue; 
         }
         double weight = t.weight;
         // std::cout << "weight=" << weight << std::endl;
@@ -479,7 +478,7 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
         h_y_vs_rapgap_fb_Etamax_tracker_wSwap->Fill(dijetY, frg, brg, weight);
         if (PFJetDeta_b < 1) h_y_vs_rapgap_fb_Etamax_tracker_PFJetCut_wSwap->Fill(dijetY, frg, brg, weight);
 
-        h_Nch_vs_rapgap_fb_Etamax_tracker_wSwap->Fill(nch, brg, frg, weight);
+        h_Nch_vs_rapgap_fb_Etamax_tracker_wSwap->Fill(nch, frg, brg, weight); 
 
         // debug
         // std::cout << "ient=" << ient
@@ -499,18 +498,18 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
 
 
         // Swap forward/backward if needed (NEED to have ALREADY filled/swapped deta)
-        // if (midEta < 0.) {
-        //     std::swap(imaxE_forward, imaxE_backward);
-        //     std::swap(imaxE_forward_tracker, imaxE_backward_tracker);
+        if (midEta < 0.) {
+            std::swap(imaxE_forward, imaxE_backward);
+            std::swap(imaxE_forward_tracker, imaxE_backward_tracker);
 
-        //     std::swap(imaxE_forward_BB, imaxE_backward_BB);
-        //     std::swap(imaxE_forward_EC1, imaxE_backward_EC1);
-        //     std::swap(imaxE_forward_EC2, imaxE_backward_EC2);
-        //     std::swap(imaxE_forward_HF, imaxE_backward_HF);
+            std::swap(imaxE_forward_BB, imaxE_backward_BB);
+            std::swap(imaxE_forward_EC1, imaxE_backward_EC1);
+            std::swap(imaxE_forward_EC2, imaxE_backward_EC2);
+            std::swap(imaxE_forward_HF, imaxE_backward_HF);
 
-        //     std::swap(imaxEta_forward, imaxEta_backward);
-        //     std::swap(imaxEta_forward_tracker, imaxEta_backward_tracker);
-        // }
+            std::swap(imaxEta_forward, imaxEta_backward);
+            std::swap(imaxEta_forward_tracker, imaxEta_backward_tracker);
+        }
 
         // Fill histograms
         if (imaxE_plus>=0) h_PF_plus_Emax->Fill(t.pfEta->at(imaxE_plus), t.pfPhi->at(imaxE_plus), t.pfE->at(imaxE_plus), weight);
@@ -600,6 +599,14 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
                       << "\n\tnch = " << nch 
                       << std::endl;
         }
+
+        // debug
+        // std::cout << "ient=" << ient
+        //           << "\n\tiPF_HFp=" << t.iPF_HFp << ", imaxE_plus_HF=" << imaxE_plus_HF << ", e=" << t.pfE->at(imaxE_plus_HF)
+        //           << "\n\tiPF_HFm=" << t.iPF_HFm << ", imaxE_minus_HF=" << imaxE_minus_HF << ", e=" << t.pfE->at(imaxE_minus_HF)
+        //           << "\n\tiPF_FRG=" << t.iPF_FRG << ", imaxEta_forward_tracker=" << imaxEta_forward_tracker
+        //           << "\n\tiPF_BRG=" << t.iPF_BRG << ", imaxEta_backward_tracker=" << imaxEta_backward_tracker
+        //           << std::endl;
     }
 
     t.EntryCount();

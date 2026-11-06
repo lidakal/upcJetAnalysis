@@ -11,7 +11,8 @@ void draw_dijet_kinematics_vs_x2()
     TString sample = "hiforwardAll_2024rereco";
 
     // TString suffix = "";
-    TString suffix = "_oppHF_oppEC2_trkLim2p5_ptgr0p2_chOnly_jetID_jetVM";
+    // TString suffix = "_oppHF_oppEC2_trkLim2p5_ptgr0p2_chOnly_jetID_jetVM_noAbsY";
+    TString suffix = "_oppHF_oppEC2_jetID_jetVM";
 
     TFile *f = new TFile("histos/" + sample + "_dijet_kinematics" + suffix + ".root");
     TH1F *h_QT = (TH1F*)f->Get("h_QT");
@@ -20,8 +21,8 @@ void draw_dijet_kinematics_vs_x2()
     TH1F *h_y = (TH1F*)f->Get("h_y");
     TH1F *h_PHI = (TH1F*)f->Get("h_PHI");
     TH1F *h_PHI_signed = (TH1F*)f->Get("h_PHI_signed");
-    TH2F *h_cos2PHI_vs_QT = (TH2F*)f->Get("h_cos2PHI_vs_QT");
-    TH3F *h_cos2PHI_vs_QT_vs_x2 = (TH3F*)f->Get("h_cos2PHI_vs_QT_vs_x2");
+    TH2F *h_cos4PHI_vs_QT = (TH2F*)f->Get("h_cos4PHI_vs_QT");
+    TH3F *h_cos4PHI_vs_QT_vs_x2 = (TH3F*)f->Get("h_cos4PHI_vs_QT_vs_x2");
 
     // Preprocess
     for (auto h : { h_QT, h_PT, h_Minv, h_y }) {
@@ -32,14 +33,14 @@ void draw_dijet_kinematics_vs_x2()
         h->RebinX(5);
     }
 
-    for (auto h : { h_cos2PHI_vs_QT }) {
-        h->RebinX(2);
+    for (auto h : { h_cos4PHI_vs_QT }) {
+        h->RebinX(5);
         h->RebinY(2);
     }
 
-    for (auto h : { h_cos2PHI_vs_QT_vs_x2 }) {
-        h->RebinX(2); 
-        // h->RebinY(5); 
+    for (auto h : { h_cos4PHI_vs_QT_vs_x2 }) {
+        h->RebinX(5); 
+        h->RebinY(20); 
         h->RebinZ(5);
     }
 
@@ -81,7 +82,7 @@ void draw_dijet_kinematics_vs_x2()
     c_kinematics->Print("plots/" + sample + "_dijet_kinematics.pdf");
     c_kinematics->Print("plots/" + sample + "_dijet_kinematics.png");
 
-    // dN/dPHI vs PHI, <cos(2PHI)> vs QT
+    // dN/dPHI vs PHI, <cos(4PHI)> vs QT
     TCanvas *c_observables = new TCanvas("c_observables", "c_observables", 2400, 800);
     c_observables->Divide(3,1);
 
@@ -94,25 +95,26 @@ void draw_dijet_kinematics_vs_x2()
     h_PHI_signed->Draw();
 
     // c_observables->cd(2);
-    // h_cos2PHI_vs_QT->GetXaxis()->SetTitle("QT (GeV)");
-    // h_cos2PHI_vs_QT->GetYaxis()->SetTitle("cos(2#Phi)");
-    // h_cos2PHI_vs_QT->Draw("COLZ");
+    // h_cos4PHI_vs_QT->GetXaxis()->SetTitle("QT (GeV)");
+    // h_cos4PHI_vs_QT->GetYaxis()->SetTitle("cos(2#Phi)");
+    // h_cos4PHI_vs_QT->Draw("COLZ");
 
     c_observables->cd(2);
-    TProfile *p_cos2PHI_vs_QT = h_cos2PHI_vs_QT->ProfileX();
-    p_cos2PHI_vs_QT->SetLineColor(kBlack);
-    p_cos2PHI_vs_QT->SetMarkerColor(kBlack);
-    p_cos2PHI_vs_QT->GetXaxis()->SetTitle("QT (GeV)");
-    p_cos2PHI_vs_QT->GetYaxis()->SetTitle("<cos(2#Phi)>");
-    p_cos2PHI_vs_QT->GetXaxis()->SetRangeUser(0, 30);
-    p_cos2PHI_vs_QT->GetYaxis()->SetRangeUser(-1, 2);
-    p_cos2PHI_vs_QT->SetLineWidth(2);
-    p_cos2PHI_vs_QT->Draw("hist");
+    TProfile *p_cos4PHI_vs_QT = h_cos4PHI_vs_QT->ProfileX();
+    p_cos4PHI_vs_QT->SetLineColor(kBlack);
+    p_cos4PHI_vs_QT->SetMarkerColor(kBlack);
+    p_cos4PHI_vs_QT->GetXaxis()->SetTitle("QT (GeV)");
+    p_cos4PHI_vs_QT->GetYaxis()->SetTitle("<cos(4#Phi)>");
+    p_cos4PHI_vs_QT->GetXaxis()->SetRangeUser(0, 40);
+    p_cos4PHI_vs_QT->GetYaxis()->SetRangeUser(-1., 2);
+    p_cos4PHI_vs_QT->SetLineWidth(2);
+    p_cos4PHI_vs_QT->Draw("same");
+    // p_cos4PHI_vs_QT->Rebin(2);
 
     TLegend *leg_observables_x2 = new TLegend(0.2, 0.65, 0.8, 0.85);
     leg_observables_x2->SetBorderSize(0);
     leg_observables_x2->SetNColumns(2);
-    std::vector<double> x2_bins = {0, 0.02, 0.04, 0.06, 0.08, 0.1, 0.12, 0.14, 0.16, 0.18, 1.0};
+    std::vector<double> x2_bins = {0, 0.01, 0.025, 0.63, 0.15, 1.0};
     for (int i = 0; i < x2_bins.size() - 1; ++i) {
         // if (i>0) break;
         Int_t color = cms_palette[i];
@@ -120,58 +122,69 @@ void draw_dijet_kinematics_vs_x2()
 
         double x2_min = x2_bins[i];
         double x2_max = x2_bins[i + 1];
-        h_cos2PHI_vs_QT_vs_x2->GetXaxis()->SetRange(h_cos2PHI_vs_QT_vs_x2->GetXaxis()->FindBin(x2_min), h_cos2PHI_vs_QT_vs_x2->GetXaxis()->FindBin(x2_max)-1);
-        TH2D *h_cos2PHI_vs_QT_in_x2_bin = (TH2D*) h_cos2PHI_vs_QT_vs_x2->Project3D(Form("h_cos2PHI_vs_QT_in_x2_bin_%d_zx", i));
-        if (h_cos2PHI_vs_QT_in_x2_bin->GetEntries() < 50) continue;
-        TProfile *p_cos2PHI_vs_QT_in_x2_bin = h_cos2PHI_vs_QT_in_x2_bin->ProfileX(Form("p_cos2PHI_vs_QT_in_x2_bin_%d", i));
-        p_cos2PHI_vs_QT_in_x2_bin->SetLineColor(color);
-        p_cos2PHI_vs_QT_in_x2_bin->SetLineWidth(1);
-        leg_observables_x2->AddEntry(p_cos2PHI_vs_QT_in_x2_bin, Form("%.2f < x2 < %.2f", x2_min, x2_max), "l");
-        p_cos2PHI_vs_QT_in_x2_bin->Draw("hist same");
+        h_cos4PHI_vs_QT_vs_x2->GetYaxis()->SetRange(h_cos4PHI_vs_QT_vs_x2->GetYaxis()->FindBin(x2_min), h_cos4PHI_vs_QT_vs_x2->GetYaxis()->FindBin(x2_max)-1);
+        TH2D *h_cos4PHI_vs_QT_in_x2_bin = (TH2D*) h_cos4PHI_vs_QT_vs_x2->Project3D(Form("h_cos4PHI_vs_QT_in_x2_bin_%d_zx", i));
+        if (h_cos4PHI_vs_QT_in_x2_bin->GetEntries() < 20) continue;
+        TProfile *p_cos4PHI_vs_QT_in_x2_bin = h_cos4PHI_vs_QT_in_x2_bin->ProfileX(Form("p_cos4PHI_vs_QT_in_x2_bin_%d", i));
+        // p_cos4PHI_vs_QT_in_x2_bin->Rebin(2);
+        p_cos4PHI_vs_QT_in_x2_bin->SetLineColor(color);
+        p_cos4PHI_vs_QT_in_x2_bin->SetLineWidth(2);
+        leg_observables_x2->AddEntry(p_cos4PHI_vs_QT_in_x2_bin, Form("%.2f < x2 < %.2f", x2_min, x2_max), "l");
+        p_cos4PHI_vs_QT_in_x2_bin->Draw("hist same");
 
-        h_cos2PHI_vs_QT_vs_x2->GetXaxis()->SetRange(1, h_cos2PHI_vs_QT_vs_x2->GetNbinsX()); // reset
+        h_cos4PHI_vs_QT_vs_x2->GetYaxis()->SetRange(1, h_cos4PHI_vs_QT_vs_x2->GetNbinsY()); // reset
     }
 
-    p_cos2PHI_vs_QT->Draw("hist same");
-    leg_observables_x2->AddEntry(p_cos2PHI_vs_QT, "0 < x2 < 1", "l");
+    p_cos4PHI_vs_QT->Draw("same");
+    leg_observables_x2->AddEntry(p_cos4PHI_vs_QT, "0 < x2 < 1", "l");
     leg_observables_x2->Draw();
 
     c_observables->cd(3);
     c_observables->cd(3)->SetLogx();
-    TH2D *h_cos2PHI_vs_x2 = (TH2D*) h_cos2PHI_vs_QT_vs_x2->Project3D("h_cos2PHI_vs_x2_zy");
-    TProfile *p_cos2PHI_vs_x2 = h_cos2PHI_vs_x2->ProfileX("p_cos2PHI_vs_x2");
-    p_cos2PHI_vs_x2->SetLineColor(kBlack);
-    p_cos2PHI_vs_x2->SetMarkerColor(kBlack);
-    p_cos2PHI_vs_x2->GetXaxis()->SetTitle("x_{2}");
-    p_cos2PHI_vs_x2->GetYaxis()->SetTitle("<cos(2#Phi)>");
-    // p_cos2PHI_vs_x2->GetXaxis()->SetRangeUser(-2.5, 2.5);
-    p_cos2PHI_vs_x2->GetYaxis()->SetRangeUser(-1, 2);
-    p_cos2PHI_vs_x2->SetLineWidth(2);
-    p_cos2PHI_vs_x2->Draw("hist");
+    TH2D *h_cos4PHI_vs_x2 = (TH2D*) h_cos4PHI_vs_QT_vs_x2->Project3D("h_cos4PHI_vs_x2_zy");
+    TProfile *p_cos4PHI_vs_x2 = h_cos4PHI_vs_x2->ProfileX("p_cos4PHI_vs_x2");
+    p_cos4PHI_vs_x2->SetLineColor(kBlack);
+    p_cos4PHI_vs_x2->SetMarkerColor(kBlack);
+    p_cos4PHI_vs_x2->GetXaxis()->SetTitle("x_{2}");
+    p_cos4PHI_vs_x2->GetYaxis()->SetTitle("<cos(4#Phi)>");
+    // p_cos4PHI_vs_x2->GetXaxis()->SetRangeUser(-2.5, 2.5);
+    p_cos4PHI_vs_x2->GetYaxis()->SetRangeUser(-1., 2);
+    p_cos4PHI_vs_x2->SetLineWidth(2);
+    p_cos4PHI_vs_x2->Draw("same");
 
     TLegend *leg_observables_qt = new TLegend(0.2, 0.65, 0.8, 0.85);
     leg_observables_qt->SetBorderSize(0);
     leg_observables_qt->SetNColumns(2);
-    std::vector<double> qt_bins = {0, 5, 10, 15, 20, 25, 30};
+    std::vector<double> qt_bins = {0, 5, 10, 15, 20, 30, 40};
+    p_cos4PHI_vs_x2->Draw("same");
+    double xmin=-1, xmax=-1;
+    for (int i = 0; i < p_cos4PHI_vs_x2->GetNbinsX(); i++) {
+        double content = p_cos4PHI_vs_x2->GetBinContent(i);
+        if ((content>0)&&(xmin<0)) xmin = i;
+        if (content>0) xmax = i;
+        if (content>0) std::cout << i << ": " <<  p_cos4PHI_vs_x2->GetBinLowEdge(i) << std::endl;
+    }
+    p_cos4PHI_vs_x2->GetXaxis()->SetRange(xmin, xmax);
     for (int i = 0; i < qt_bins.size() - 1; ++i) {
         // if (i>0) break;
         Int_t color = cms_palette[i];
 
         double qt_min = qt_bins[i];
         double qt_max = qt_bins[i + 1];
-        h_cos2PHI_vs_QT_vs_x2->GetXaxis()->SetRange(h_cos2PHI_vs_QT_vs_x2->GetXaxis()->FindBin(qt_min), h_cos2PHI_vs_QT_vs_x2->GetXaxis()->FindBin(qt_max)-1);
-        TH2D *h_cos2PHI_vs_x2_in_QT_bin = (TH2D*) h_cos2PHI_vs_QT_vs_x2->Project3D(Form("h_cos2PHI_vs_x2_in_QT_bin_%d_zy", i));
-        TProfile *p_cos2PHI_vs_x2_in_QT_bin = h_cos2PHI_vs_x2_in_QT_bin->ProfileX(Form("p_cos2PHI_vs_x2_in_QT_bin_%d", i));
-        p_cos2PHI_vs_x2_in_QT_bin->SetLineColor(color);
-        // p_cos2PHI_vs_x2_in_QT_bin->RebinX(2);
-        leg_observables_qt->AddEntry(p_cos2PHI_vs_x2_in_QT_bin, Form("%.0f < QT < %.0f", qt_min, qt_max), "l");
+        h_cos4PHI_vs_QT_vs_x2->GetXaxis()->SetRange(h_cos4PHI_vs_QT_vs_x2->GetXaxis()->FindBin(qt_min), h_cos4PHI_vs_QT_vs_x2->GetXaxis()->FindBin(qt_max)-1);
+        TH2D *h_cos4PHI_vs_x2_in_QT_bin = (TH2D*) h_cos4PHI_vs_QT_vs_x2->Project3D(Form("h_cos4PHI_vs_x2_in_QT_bin_%d_zy", i));
+        TProfile *p_cos4PHI_vs_x2_in_QT_bin = h_cos4PHI_vs_x2_in_QT_bin->ProfileX(Form("p_cos4PHI_vs_x2_in_QT_bin_%d", i));
+        p_cos4PHI_vs_x2_in_QT_bin->SetLineColor(color);
+        p_cos4PHI_vs_x2_in_QT_bin->SetLineWidth(2);
+        // p_cos4PHI_vs_x2_in_QT_bin->RebinX(2);
+        leg_observables_qt->AddEntry(p_cos4PHI_vs_x2_in_QT_bin, Form("%.0f < QT < %.0f", qt_min, qt_max), "l");
 
-        p_cos2PHI_vs_x2_in_QT_bin->Draw("hist same");
+        p_cos4PHI_vs_x2_in_QT_bin->Draw("hist same");
 
-        h_cos2PHI_vs_QT_vs_x2->GetXaxis()->SetRange(1, h_cos2PHI_vs_QT_vs_x2->GetNbinsX()); // reset
+        h_cos4PHI_vs_QT_vs_x2->GetXaxis()->SetRange(1, h_cos4PHI_vs_QT_vs_x2->GetNbinsX()); // reset
     }
-    leg_observables_qt->AddEntry(p_cos2PHI_vs_x2, "0 < QT < 30 GeV", "l");
-    p_cos2PHI_vs_x2->Draw("hist same");
+    leg_observables_qt->AddEntry(p_cos4PHI_vs_x2, "0 < QT < 40 GeV", "l");
+    p_cos4PHI_vs_x2->Draw("same");
     leg_observables_qt->Draw();
 
     c_observables->Print("plots/" + sample + "_dijet_observables_vs_x2.pdf");
