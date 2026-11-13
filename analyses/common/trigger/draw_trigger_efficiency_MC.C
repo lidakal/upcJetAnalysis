@@ -57,7 +57,18 @@ void draw_trigger_efficiency_MC()
     h_eff_NotMB->Divide(h_den_NotMB);
     h_eff_NotMB->SetLineColor(cmsLightBlue);
 
-    for (auto h : {h_eff_Jet8, h_eff_Jet12, h_eff_Jet16, h_eff_Jet20, h_eff_NotMB}) {
+    TCanvas *c_eff = new TCanvas("c_eff", "c_eff", 800, 700);
+    c_eff->SetTopMargin(0.1);
+    c_eff->SetBottomMargin(0.15);
+    c_eff->SetLeftMargin(0.15);
+    c_eff->SetRightMargin(0.05);
+    for (auto h : {
+        h_eff_Jet8, 
+        // h_eff_Jet12, 
+        h_eff_Jet16, 
+        // h_eff_Jet20, 
+        // h_eff_NotMB
+    }) {
         h->SetLineWidth(2);
         h->SetMarkerColor(h->GetLineColor());
         h->GetXaxis()->SetTitle("p_{T}^{jet, lead} (GeV)");
@@ -66,30 +77,19 @@ void draw_trigger_efficiency_MC()
         h->SetMinimum(0.);
         h->SetMaximum(1.1);
         h->SetMarkerSize(600);
+        h->Draw("hist text same");
     }
-
-    TCanvas *c_eff = new TCanvas("c_eff", "c_eff", 800, 700);
-    c_eff->SetTopMargin(0.1);
-    c_eff->SetBottomMargin(0.15);
-    c_eff->SetLeftMargin(0.15);
-    c_eff->SetRightMargin(0.05);
-
-    h_eff_Jet8->Draw("hist text same");
-    h_eff_Jet12->Draw("hist text same");
-    h_eff_Jet16->Draw("hist text same");
-    h_eff_Jet20->Draw("hist text same");
-    h_eff_NotMB->Draw("hist text same");
     draw_header();
 
     TLegend *leg_eff = new TLegend(0.5, 0.2, 0.7, 0.5);
     leg_eff->SetBorderSize(0);
     leg_eff->SetMargin(0.15);
     // leg_eff->SetHeader("NotMBAND AND");
-    leg_eff->AddEntry(h_eff_NotMB, "NotMB", "l");
+    // leg_eff->AddEntry(h_eff_NotMB, "NotMB", "l");
     leg_eff->AddEntry(h_eff_Jet8, "NotMB AND Jet8", "l");
-    leg_eff->AddEntry(h_eff_Jet12, "NotMB AND Jet12", "l");
+    // leg_eff->AddEntry(h_eff_Jet12, "NotMB AND Jet12", "l");
     leg_eff->AddEntry(h_eff_Jet16, "NotMB AND Jet16", "l");
-    leg_eff->AddEntry(h_eff_Jet20, "NotMB AND Jet20", "l");
+    // leg_eff->AddEntry(h_eff_Jet20, "NotMB AND Jet20", "l");
     leg_eff->Draw();
 
     TLine *line = new TLine(30., 0., 30., 1.1);
