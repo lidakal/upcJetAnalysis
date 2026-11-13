@@ -46,7 +46,11 @@ void plot_jet_kinematics(TString fin="", TString fout="jet_kinematics.root")
         h_nref_pt1_pt2->Fill(t.nref, t.jtpt[0], t.jtpt[1], weight);
         h_nref_eta1_eta2->Fill(t.nref, t.jteta[0], t.jteta[1], weight);
 
-        if (t.nref<3) continue;
+        if (t.nref<3) {
+            // do not skip so we keep count
+            t.jtpt[2] = 0.;
+            t.jteta[2] = -999.
+        }  
 
         h_nref_pt_eta_third->Fill(t.nref, t.jtpt[2], t.jteta[2], weight);
     }

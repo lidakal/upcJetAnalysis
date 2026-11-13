@@ -23,10 +23,12 @@ void draw_jet_kinematics()
     gStyle->SetLegendTextSize(28);
     gStyle->SetPaintTextFormat("0.2f");
 
+    // TString sample = "beamA_diffraction_pthat10";
     TString sample = "hiforwardAll_2024rereco";
     TString suffix = "_HLT_ZDC";
     TFile *f = new TFile("histos/" + sample + "_jet_kinematics" + suffix + ".root"); // Created by plot_jet_kinematics.C
     TH1F *h_nref = (TH1F *) f->Get("h_nref");
+    TH3F *h_nref_pt1_pt2 = (TH3F *) f->Get("h_nref_pt1_pt2");
     TH3F *h_nref_pt_eta_lead = (TH3F *) f->Get("h_nref_pt_eta_lead");
     TH3F *h_nref_pt_eta_sub = (TH3F *) f->Get("h_nref_pt_eta_sub");
     TH3F *h_nref_pt_eta_third = (TH3F *) f->Get("h_nref_pt_eta_third");
@@ -35,6 +37,7 @@ void draw_jet_kinematics()
     TH2F *h_nref_pt_lead = (TH2F *) h_nref_pt_eta_lead->Project3D("xy");
     TH2F *h_nref_pt_sub = (TH2F *) h_nref_pt_eta_sub->Project3D("xy");
     TH2F *h_nref_pt_third = (TH2F *) h_nref_pt_eta_third->Project3D("xy");
+    TH2F *h_pt1_pt2 = (TH2F *) h_nref_pt1_pt2->Project3D("zy");
 
     TH1F *h_pt_lead = (TH1F *) h_nref_pt_eta_lead->Project3D("y");
     h_pt_lead->SetMarkerStyle(kFullCircle);
@@ -65,6 +68,28 @@ void draw_jet_kinematics()
     h_nref->GetYaxis()->SetTitle("Number of events");
     h_nref->Draw();
     draw_header();
+
+    TCanvas *c_pt1_pt2 = new TCanvas("c_pt1_pt2", "x=ptlead, y=ptsub", 800, 700);
+    c_pt1_pt2->SetTopMargin(0.1);
+    c_pt1_pt2->SetBottomMargin(0.15);
+    c_pt1_pt2->SetLeftMargin(0.15);
+    c_pt1_pt2->SetRightMargin(0.15);
+    c_pt1_pt2->SetLogz();
+    h_pt1_pt2->GetYaxis()->SetTitle("p_{T}^{jet,sub}");
+    h_pt1_pt2->GetXaxis()->SetTitle("p_{T}^{jet,lead}");
+    h_pt1_pt2->GetYaxis()->SetTitleOffset(1.2);
+    h_pt1_pt2->GetXaxis()->SetTitleOffset(1.2);
+    h_pt1_pt2->Draw("colz");
+    draw_header();
+    TLine *line_pt1 = new TLine(30., 20., 30., 80.);
+    line_pt1->SetLineWidth(2);
+    line_pt1->SetLineColor(cmsOrange);
+    line_pt1->Draw();
+    TLine *line_pt2 = new TLine(30., 20., 80., 20.);
+    line_pt2->SetLineWidth(2);
+    line_pt2->SetLineColor(cmsOrange);
+    line_pt2->Draw();
+    c_pt1_pt2->Print("plots/"+sample+"_pt1_pt2"+suffix+".pdf");
 
     TCanvas *c_nref_pt_lead = new TCanvas("c_nref_pt_lead", "x=ptlead, y=nref", 800, 700);
     c_nref_pt_lead->SetTopMargin(0.1);
