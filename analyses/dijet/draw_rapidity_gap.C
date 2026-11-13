@@ -37,8 +37,8 @@ void draw_rapidity_gap()
     gStyle->SetLabelSize(24, "XYZ");
     gStyle->SetTitleSize(28, "XYZ");
 
-    // TString sample = "beamB_diffraction_pthat10";
-    TString sample = "hiforwardAll_2024rereco";
+    TString sample = "beamA_diffraction_pthat10";
+    // TString sample = "hiforwardAll_2024rereco";
     TString suffix = "_oppHF_oppEC2_trkLim2p5_ptgr0p2_chOnly_jetID_jetVM";
     TFile *fin = new TFile("histos/"+sample+"_pf_distribution"+suffix+".root"); // requires plot_PF_distribution*.C
 
