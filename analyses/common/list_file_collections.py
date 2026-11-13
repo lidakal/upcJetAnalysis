@@ -34,7 +34,7 @@ def main() -> int:
         raise SystemExit(f"Base directory does not exist: {base_dir}")
 
     merged_paths = []
-    for directory in base_dir.glob("HIForward*/*16Jan2024*/*/*/"):
+    for directory in base_dir.glob("HIForward*/*HIRun2025A-PromptReco-v1*ZDCjson*/*/*/"):
         merged_paths.append(directory / "HiForestMiniAOD_*.root")
 
     if not merged_paths:

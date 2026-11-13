@@ -2,8 +2,11 @@ universe              = vanilla
 executable            = process.sh
 
 # Arguments
-# inputfiles = /u/user/lidakal/UPC2023/upcJetAnalysis/analyses/common/filelists/beamB_diffraction_pthat10_forest_files.txt
-inputfiles = /u/user/lidakal/UPC2023/upcJetAnalysis/analyses/common/filelists/hiforward4_forest_files.txt
+#inputfiles = /u/user/lidakal/UPC2023/upcJetAnalysis/analyses/common/filelists/beamA_diffractionSide2_pthat10_forest_files.txt
+#inputfiles = /u/user/lidakal/UPC2023/upcJetAnalysis/analyses/common/filelists/beamA_qcd_pthat10_forest_files.txt
+inputfiles = /u/user/lidakal/UPC2023/upcJetAnalysis/analyses/common/filelists/hiforwardAll_2024rereco_forest_files.txt
+#inputfiles = /u/user/lidakal/UPC2023/upcJetAnalysis/analyses/common/filelists/hiforwardAll_2025_forest_files.txt
+#inputfiles = /u/user/lidakal/UPC2023/upcJetAnalysis/analyses/common/filelists/hiemptybx_2024rereco_forest_files.txt
 outputfile = /u/user/lidakal/UPC2023/upcJetAnalysis/analyses/common/out/output_$(Cluster)_$(Process).root
 
 arguments             = $(inputfile) $(outputfile)
