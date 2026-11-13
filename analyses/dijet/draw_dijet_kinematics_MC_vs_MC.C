@@ -7,7 +7,7 @@ void draw_dijet_kinematics_MC_vs_MC()
     gStyle->SetLabelSize(28, "XYZ");
     gStyle->SetLegendTextSize(28);
 
-    TString suffix_mc = "_oppHF";
+    TString suffix_mc = "_oppHF_eta1p0";
     
     TFile *f_beamA_qcd = new TFile("histos/beamA_qcd_pthat10_dijet_kinematics"+suffix_mc+".root");
     std::cout << "BEAM A QCD: Loaded " << f_beamA_qcd->GetName() << std::endl;

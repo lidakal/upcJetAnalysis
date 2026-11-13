@@ -7,12 +7,12 @@ void draw_dijet_kinematics()
     gStyle->SetLabelSize(28, "XYZ");
     gStyle->SetLegendTextSize(28);
 
-    // TString sample = "beamB_diffraction_pthat10";
-    TString sample = "hiforwardAll_2024rereco";
+    TString sample = "beamA_qcd_pthat10";
+    // TString sample = "hiforwardAll_2024rereco";
 
     // TString suffix = "";
     // TString suffix = "_oppHF_oppEC2_trkLim2p5_ptgr0p2_chOnly_jetID_jetVM_noAbsY";
-    TString suffix = "_0n0n_oppHF";
+    TString suffix = "_oppHF_eta1p0";
 
     TFile *f = new TFile("histos/" + sample + "_dijet_kinematics" + suffix + ".root");
     TH1F *h_QT = (TH1F*)f->Get("h_QT");
@@ -100,6 +100,13 @@ void draw_dijet_kinematics()
     // h_cos2PHI_vs_QT->Draw("COLZ");
 
     c_observables->cd(2);
+
+    std::vector<int> markers = {kFullTriangleUp, kFullTriangleDown, kFullSquare, kFullCross};
+
+    h_cos2PHI_vs_QT_vs_y->GetXaxis()->SetRange();
+    h_cos2PHI_vs_QT_vs_y->GetYaxis()->SetRange();
+    h_cos2PHI_vs_QT_vs_y->GetZaxis()->SetRange();
+
     TProfile *p_cos2PHI_vs_QT = h_cos2PHI_vs_QT->ProfileX();
     p_cos2PHI_vs_QT->SetLineColor(kBlack);
     p_cos2PHI_vs_QT->SetMarkerColor(kBlack);
@@ -113,7 +120,8 @@ void draw_dijet_kinematics()
     TLegend *leg_observables_y = new TLegend(0.2, 0.65, 0.8, 0.85);
     leg_observables_y->SetBorderSize(0);
     leg_observables_y->SetNColumns(2);
-    std::vector<double> y_bins = {-1., 0., 1., 2., 2.5};
+    // std::vector<double> y_bins = {-1., 0., 1., 2., 2.5};
+    std::vector<double> y_bins = {-1., -0.5, 0., 0.5, 1.};
     for (int i = 0; i < y_bins.size() - 1; ++i) {
         // if (i>0) break;
         Int_t color = cms_palette[i];
@@ -125,26 +133,38 @@ void draw_dijet_kinematics()
         TH2D *h_cos2PHI_vs_QT_in_y_bin = (TH2D*) h_cos2PHI_vs_QT_vs_y->Project3D(Form("h_cos2PHI_vs_QT_in_y_bin_%d_zx", i));
         if (h_cos2PHI_vs_QT_in_y_bin->GetEntries() < 50) continue;
         TProfile *p_cos2PHI_vs_QT_in_y_bin = h_cos2PHI_vs_QT_in_y_bin->ProfileX(Form("p_cos2PHI_vs_QT_in_y_bin_%d", i));
+        p_cos2PHI_vs_QT_in_y_bin->SetFillColorAlpha(color, 0.1);
+        p_cos2PHI_vs_QT_in_y_bin->SetFillStyle(1001);
+        p_cos2PHI_vs_QT_in_y_bin->SetMarkerColor(color);
         p_cos2PHI_vs_QT_in_y_bin->SetLineColor(color);
-        p_cos2PHI_vs_QT_in_y_bin->SetLineWidth(1);
-        leg_observables_y->AddEntry(p_cos2PHI_vs_QT_in_y_bin, Form("%.1f < y < %.1f", y_min, y_max), "l");
-        p_cos2PHI_vs_QT_in_y_bin->Draw("hist same");
+        p_cos2PHI_vs_QT_in_y_bin->SetMarkerStyle(1);
+        auto tmp = (TProfile*) p_cos2PHI_vs_QT_in_y_bin->Clone(TString(p_cos2PHI_vs_QT_in_y_bin->GetName())+"_clone");
+        tmp->SetFillStyle(0);
 
-        h_cos2PHI_vs_QT_vs_y->GetYaxis()->SetRange(1, h_cos2PHI_vs_QT_vs_y->GetNbinsY()); // reset
+        leg_observables_y->AddEntry(p_cos2PHI_vs_QT_in_y_bin, Form("%.1f < y < %.1f", y_min, y_max), "l");
+        p_cos2PHI_vs_QT_in_y_bin->Draw("same e4");
+        tmp->Draw("same c hist");
+
+        h_cos2PHI_vs_QT_vs_y->GetYaxis()->SetRange(); // reset
     }
 
     p_cos2PHI_vs_QT->Draw("same");
-    leg_observables_y->AddEntry(p_cos2PHI_vs_QT, "-1.0 < y < 2.5", "l");
+    leg_observables_y->AddEntry(p_cos2PHI_vs_QT, "-1.0 < y < 2.5", "pl");
     leg_observables_y->Draw();
 
     c_observables->cd(3);
+
+    h_cos2PHI_vs_QT_vs_y->GetXaxis()->SetRange();
+    h_cos2PHI_vs_QT_vs_y->GetYaxis()->SetRange();
+    h_cos2PHI_vs_QT_vs_y->GetZaxis()->SetRange();
+
     TH2D *h_cos2PHI_vs_y = (TH2D*) h_cos2PHI_vs_QT_vs_y->Project3D("h_cos2PHI_vs_y_zy");
     TProfile *p_cos2PHI_vs_y = h_cos2PHI_vs_y->ProfileX("p_cos2PHI_vs_y");
     p_cos2PHI_vs_y->SetLineColor(kBlack);
     p_cos2PHI_vs_y->SetMarkerColor(kBlack);
     p_cos2PHI_vs_y->GetXaxis()->SetTitle("Dijet y");
     p_cos2PHI_vs_y->GetYaxis()->SetTitle("<cos(2#Phi)>");
-    p_cos2PHI_vs_y->GetXaxis()->SetRangeUser(-1, 2.5);
+    p_cos2PHI_vs_y->GetXaxis()->SetRangeUser(-1, 1);
     p_cos2PHI_vs_y->GetYaxis()->SetRangeUser(-0.5, 2);
     p_cos2PHI_vs_y->SetLineWidth(2);
     p_cos2PHI_vs_y->Draw("same");
@@ -152,7 +172,8 @@ void draw_dijet_kinematics()
     TLegend *leg_observables_qt = new TLegend(0.2, 0.65, 0.8, 0.85);
     leg_observables_qt->SetBorderSize(0);
     leg_observables_qt->SetNColumns(2);
-    std::vector<double> qt_bins = {0, 5, 10, 15, 20, 30, 40};
+    // std::vector<double> qt_bins = {0, 5, 10, 15, 20, 30, 40};
+    std::vector<double> qt_bins = {0, 10, 20, 30, 40};
     for (int i = 0; i < qt_bins.size() - 1; ++i) {
         // if (i>0) break;
         Int_t color = cms_palette[i];
@@ -162,15 +183,22 @@ void draw_dijet_kinematics()
         h_cos2PHI_vs_QT_vs_y->GetXaxis()->SetRange(h_cos2PHI_vs_QT_vs_y->GetXaxis()->FindBin(qt_min), h_cos2PHI_vs_QT_vs_y->GetXaxis()->FindBin(qt_max)-1);
         TH2D *h_cos2PHI_vs_y_in_QT_bin = (TH2D*) h_cos2PHI_vs_QT_vs_y->Project3D(Form("h_cos2PHI_vs_y_in_QT_bin_%d_zy", i));
         TProfile *p_cos2PHI_vs_y_in_QT_bin = h_cos2PHI_vs_y_in_QT_bin->ProfileX(Form("p_cos2PHI_vs_y_in_QT_bin_%d", i));
+        p_cos2PHI_vs_y_in_QT_bin->SetFillColorAlpha(color, 0.1);
+        p_cos2PHI_vs_y_in_QT_bin->SetFillStyle(1001);
+        p_cos2PHI_vs_y_in_QT_bin->SetMarkerColor(color);
         p_cos2PHI_vs_y_in_QT_bin->SetLineColor(color);
+        p_cos2PHI_vs_y_in_QT_bin->SetMarkerStyle(1);
+        auto tmp = (TProfile*) p_cos2PHI_vs_y_in_QT_bin->Clone(TString(p_cos2PHI_vs_y_in_QT_bin->GetName())+"_clone");
+        tmp->SetFillStyle(0);
         // p_cos2PHI_vs_y_in_QT_bin->RebinX(2);
         leg_observables_qt->AddEntry(p_cos2PHI_vs_y_in_QT_bin, Form("%.0f < QT < %.0f", qt_min, qt_max), "l");
 
-        p_cos2PHI_vs_y_in_QT_bin->Draw("hist same");
+        p_cos2PHI_vs_y_in_QT_bin->Draw("same e4");
+        tmp->Draw("same c hist");
 
-        h_cos2PHI_vs_QT_vs_y->GetXaxis()->SetRange(1, h_cos2PHI_vs_QT_vs_y->GetNbinsX()); // reset
+        h_cos2PHI_vs_QT_vs_y->GetXaxis()->SetRange(); // reset
     }
-    leg_observables_qt->AddEntry(p_cos2PHI_vs_y, "0 < QT < 30 GeV", "l");
+    leg_observables_qt->AddEntry(p_cos2PHI_vs_y, "0 < QT < 30 GeV", "pl");
     p_cos2PHI_vs_y->Draw("same");
     leg_observables_qt->Draw();
 

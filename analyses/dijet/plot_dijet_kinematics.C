@@ -14,8 +14,8 @@ void plot_dijet_kinematics(TString fin="", TString fout="dijet_kinematics.root")
     } else {
         // t.Add("/u/user/lidakal/SE_UserHome/HIForward0/crab_HiForward0_HIRun2023A-16Jan2024-v1_ZDCjson_wCCfilter/260629_023836/0000/HiForestMiniAOD_*.root");
         // t.Add("/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV_v2/crab_GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV_v2-forest_v2/260908_062207/0000/HiForestMiniAOD_1*.root");
-        t.Add("/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamB_Pthat10_5p36TeV/crab_GNucleus-Diffraction-PhotonBeamB_Pthat10_5p36TeV-forest_v2/260813_082421/0000/HiForestMiniAOD_1*.root");
-        // t.Add("/u/user/lidakal/SE_UserHome/HIForward0/crab_HiForward0_HIRun2025A-PromptReco-v1_ZDCjson/261026_055856/0006/HiForestMiniAOD_*.root");
+        // t.Add("/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamB_Pthat10_5p36TeV/crab_GNucleus-Diffraction-PhotonBeamB_Pthat10_5p36TeV-forest_v2/260813_082421/0000/HiForestMiniAOD_1*.root");
+        t.Add("/u/user/lidakal/SE_UserHome/HIForward0/crab_HiForward0_HIRun2025A-PromptReco-v1_ZDCjson/261026_055856/0006/HiForestMiniAOD_*.root");
     }
     t.Init();
 
