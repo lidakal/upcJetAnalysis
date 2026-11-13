@@ -31,11 +31,11 @@ void plot_PF_distribution_v2(TString fin="", TString fout="pf_distribution.root"
     if (fin != "") {
         t.Add(fin);
     } else {
-        // fin  = "/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV_v2/crab_GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV_v2-forest_v2/260908_062207/0000/HiForestMiniAOD_*.root";
+        fin  = "/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV_v2/crab_GNucleus-Diffraction-PhotonBeamA_Pthat10_5p36TeV_v2-forest_v2/260908_062207/0000/HiForestMiniAOD_*.root";
         // fin = "/u/user/lidakal/SE_UserHome/GNucleus-QCD_Pthat10_5p36TeV_pythia8/crab_GNucleus-QCD_Pthat10_5p36TeV-forest_v2/260831_090609/0000/HiForestMiniAOD_1*.root";
         // fin = "/u/user/lidakal/SE_UserHome/GNucleus-Diffraction-PhotonBeamB_Pthat10_5p36TeV/crab_GNucleus-Diffraction-PhotonBeamB_Pthat10_5p36TeV-forest_v2/260813_082421/0000/HiForestMiniAOD_1*.root";
         // fin = "/u/user/lidakal/SE_UserHome/HIEmptyBX/crab_HiEmptyBX_HIRun2023A-16Jan2024-v1_ZDCjson_v2/260710_034030/0000/HiForestMiniAOD_100.root";
-        fin = "/u/user/lidakal/SE_UserHome/HIForward0/crab_HiForward0_HIRun2023A-16Jan2024-v1_ZDCjson_wCCfilter/260629_023836/0000/HiForestMiniAOD_*.root";
+        // fin = "/u/user/lidakal/SE_UserHome/HIForward0/crab_HiForward0_HIRun2023A-16Jan2024-v1_ZDCjson_wCCfilter/260629_023836/0000/HiForestMiniAOD_*.root";
         t.Add(fin);
     }
     t.Init();

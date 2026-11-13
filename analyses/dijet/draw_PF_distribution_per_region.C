@@ -24,11 +24,11 @@ void draw_PF_distribution_per_region()
     // std::vector<TString> regions = {"HF"};
     std::vector<TString> regions = {"BB", "EC1", "EC2", "HF"};
 
-    // TString sample = "beamA_diffractionSide2_pthat10";
-    // TString sample = "hiemptybx_2024rereco";
-    TString sample = "hiforwardAll_2024rereco";
+    // TString sample = "beamA_diffraction_pthat10";
+    TString sample = "hiemptybx_2024rereco";
+    // TString sample = "hiforwardAll_2024rereco";
 
-    TString suffix = "_0nXnOneSided_noRG_trkLim3p0";
+    TString suffix = "_noRG_v2";
 
     TFile *fin = new TFile("histos/"+sample+"_pf_distribution"+suffix+".root"); // requires plot_PF_distribution_v2.C
 
@@ -127,6 +127,7 @@ void draw_PF_distribution_per_region()
                     line_plus->SetLineColor(color_plus);
                     line_plus->Draw();
                     found_plus = true;
+                    std::cout << region << "+ threshold = " << Ethr << std::endl;
                 }
 
                 double content_minus = h_PF_minus_Emax_Ecum->GetBinContent(ibin);
@@ -136,6 +137,7 @@ void draw_PF_distribution_per_region()
                     line_minus->SetLineColor(color_minus);
                     line_minus->Draw();
                     found_minus = true;
+                    std::cout << region << "- threshold = " << Ethr << std::endl;
                 }
 
                 if (found_plus && found_minus) break;

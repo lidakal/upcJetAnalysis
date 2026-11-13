@@ -11,7 +11,7 @@ void draw_PF_distribution_MC_vs_MC()
 
     // Load histograms
 
-    TString suffix_mc = "_oppHF_trkLim3p0";
+    TString suffix_mc = "_oppHF_eta1p0_trkLim3p0";
     
     TFile *f_beamA_qcd = new TFile("histos/beamA_qcd_pthat10_pf_distribution"+suffix_mc+".root");
     std::cout << "BEAM A QCD: Loaded " << f_beamA_qcd->GetName() << std::endl;
@@ -37,7 +37,8 @@ void draw_PF_distribution_MC_vs_MC()
     TH3F *h_PFch_pt_beamA_diffractionSide2 = (TH3F*)f_beamA_diffractionSide2->Get("h_PFch_pt")->Clone("h_PFch_pt_beamA_diffractionSide2");
     TH3F *h_Nch_vs_rapgap_Etamax_tracker_beamA_diffractionSide2 = (TH3F*)f_beamA_diffractionSide2->Get("h_Nch_vs_rapgap_fb_Etamax_tracker_wSwap")->Clone("h_Nch_vs_rapgap_Etamax_tracker_beamA_diffractionSide2");
 
-    TFile *f_beamB_diffraction = new TFile("histos/beamB_diffraction_pthat10_pf_distribution"+suffix_mc+".root");
+    // TFile *f_beamB_diffraction = new TFile("histos/beamB_diffraction_pthat10_pf_distribution"+suffix_mc+".root");
+    TFile *f_beamB_diffraction = new TFile("histos/beamB_diffraction_pthat10_pf_distribution_oppHF_trkLim3p0.root");
     std::cout << "BEAM B: Loaded " << f_beamB_diffraction->GetName() << std::endl;
     TH3F *h_PF_beamB_diffraction = (TH3F*)f_beamB_diffraction->Get("h_PF")->Clone("h_PF_beamB_diffraction");
     TH3F *h_PF_pt_beamB_diffraction = (TH3F*)f_beamB_diffraction->Get("h_PF_pt")->Clone("h_PF_pt_beamB_diffraction");

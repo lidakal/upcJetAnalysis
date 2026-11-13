@@ -24,11 +24,11 @@ void draw_PF_distribution_per_region_FB()
     // std::vector<TString> regions = {"HF"};
     std::vector<TString> regions = {"BB", "EC1", "EC2", "HF"};
 
-    // TString sample = "beamA_diffraction_pthat10";
+    TString sample = "beamA_diffraction_pthat10";
     // TString sample = "hiemptybx_2024rereco";
-    TString sample = "hiforwardAll_2024rereco";
+    // TString sample = "hiforwardAll_2024rereco";
 
-    TFile *fin = new TFile("histos/"+sample+"_pf_distribution_XnXn_noRG_trkLim3p0.root"); // requires plot_PF_distribution_v2.C
+    TFile *fin = new TFile("histos/"+sample+"_pf_distribution_oppHF_eta1p0_trkLim3p0.root"); // requires plot_PF_distribution_v2.C
 
     for (auto region : regions) {
         TH3F *h_PF_forward_Emax = (TH3F *) fin->Get("h_PF_forward_"+region+"_Emax");
