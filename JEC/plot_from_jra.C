@@ -1,8 +1,10 @@
 #include "JetUncertainty.h"
 #include "JetCorrector.h"
 
-const Int_t nrefpt_bins = 25;
-const Float_t refpt_bins[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 23, 27, 30, 50, 100};
+#include "../analyses/common/constants.h"
+
+const Int_t nrefpt_bins = 29;
+const Float_t refpt_bins[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 23, 27, 35, 40, 45, 50, 60, 75, 100};
 
 const Int_t njes_bins = 15;
 const Float_t jes_bins[] = {0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.2, 2.4, 2.6, 2.8, 3.0};
@@ -129,12 +131,13 @@ void plot_from_jra(TString input_file="", TString output_file="jet_kinematics.ro
     }
     else {
         // Read from multiple files
-        // TString base_dir = "/u/user/lidakal/SE_UserHome/GNucleus-QCD_Pthat5_5p36TeV_pythia8/crab_GNucleus-QCD_Pthat5_5p36TeV_pythia8_JRA_v3/260216_050450/";
+        TString base_dir = "/u/user/lidakal/SE_UserHome/GNucleus-QCD_Pthat10_5p36TeV_pythia8/crab_GNucleus-QCD_Pthat10_UPC_5p36TeV_pythia8_JRA/260406_021856/";
         // TString base_dir = "/u/user/lidakal/SE_UserHome/GNucleus-QCD-PhotonBeamB_Pthat0_UPC_5p36TeV_pythia8/crab_GNucleus-QCD-PhotonBeamB_Pthat0_UPC_5p36TeV_pythia8_JRA_v2/260217_091009/";
-        TString base_dir = "/u/user/lidakal/SE_UserHome/GNucleus-QCD-PhotonBeamA_Pthat0_UPC_5p36TeV_pythia8/crab_GNucleus-QCD-PhotonBeamA_Pthat0_UPC_5p36TeV_pythia8_JRA/260217_090747/";
+        // TString base_dir = "/u/user/lidakal/SE_UserHome/GNucleus-QCD-PhotonBeamA_Pthat0_UPC_5p36TeV_pythia8/crab_GNucleus-QCD-PhotonBeamA_Pthat0_UPC_5p36TeV_pythia8_JRA/260217_090747/";
         // TString base_dir = "/u/user/lidakal/SE_UserHome/HIForward0/crab_HiForward0_HIRun2023A-PromptReco-v2_ZDCjson_v7/260216_070726/";
-        std::cout << "Adding files from " << base_dir << std::endl;
-        tree->Add(base_dir+"/0000/JRA_1.root");
+        input_file = base_dir+"/0000/merged_JRA.root";
+        std::cout << "Adding files from " << input_file << std::endl;
+        tree->Add(input_file);
     }
 
     Long64_t nentries = tree->GetEntries();
@@ -153,6 +156,7 @@ void plot_from_jra(TString input_file="", TString output_file="jet_kinematics.ro
     std::vector<float> *refpt = nullptr;
     std::vector<float> *refeta = nullptr;
     std::vector<float> *refphi = nullptr;
+    Float_t pthat = 0;
 
     tree->SetBranchAddress("nref", &nref);
     tree->SetBranchAddress("jtpt", &jtpt);
@@ -161,6 +165,7 @@ void plot_from_jra(TString input_file="", TString output_file="jet_kinematics.ro
     tree->SetBranchAddress("refpt", &refpt);
     tree->SetBranchAddress("refeta", &refeta);
     tree->SetBranchAddress("refphi", &refphi);
+    tree->SetBranchAddress("pthat", &pthat);
 
     Float_t weight = 1.0;
 
@@ -178,14 +183,41 @@ void plot_from_jra(TString input_file="", TString output_file="jet_kinematics.ro
     TH3F *h_jes_w_jec_vs_refpt_vs_jteta_s = new TH3F("h_jes_w_jec_vs_refpt_vs_jteta_s", "jes_w_jec_vs_refpt_vs_jteta_s", nrefpt_bins, refpt_bins, njes_bins, jes_bins, neta_bins_s, eta_bins_s);
     TH3F *h_jes_vs_refpt_vs_jteta_s = new TH3F("h_jes_vs_refpt_vs_jteta_s", "jes_vs_refpt_vs_jteta_s", nrefpt_bins, refpt_bins, njes_bins, jes_bins, neta_bins_s, eta_bins_s);
 
+    TH2F *h_refpt_vs_pthat = new TH2F("h_refpt_vs_pthat", "refpt_vs_pthat", nrefpt_bins, refpt_bins, nrefpt_bins, refpt_bins);
+    TH2F *h_refpt_vs_pthat_w = new TH2F("h_refpt_vs_pthat_w", "refpt_vs_pthat", nrefpt_bins, refpt_bins, nrefpt_bins, refpt_bins);
+
     for (Long64_t ient = 0; ient < nentries; ient++) {
         // if (ient > 10) break;
-        if (ient % 100000 == 0)
+        if (ient % 1000000 == 0)
             std::cout << "Processing entry " << ient << " / " << nentries << std::endl;
 
         tree->GetEntry(ient);
 
         for (Int_t ijet = 0; ijet < (int) nref; ijet++) {
+            if (ijet==0) {
+                h_refpt_vs_pthat->Fill(pthat, refpt->at(ijet));
+
+                // Make weighted histogram
+                double sigma1 = sigma_beamA_pthat10;
+                double sigma2 = sigma_beamA_pthat20;
+                double n1 = n_beamA_10to20;
+                double n2 = n_beamA_20toInf;
+                if (input_file.Contains("PhotonBeamB")) {
+                    sigma1 = sigma_beamB_pthat10;
+                    sigma2 = sigma_beamB_pthat20;
+                    n1 = n_beamB_10to20;
+                    n2 = n_beamB_20toInf;
+                }
+                double pthat_weight = weight;
+                if (pthat >= 20) {
+                    pthat_weight *= sigma2/n2;
+                }
+                else if (pthat >= 10) {
+                    pthat_weight *= (sigma1-sigma2)/n1;
+                }
+                h_refpt_vs_pthat_w->Fill(pthat, refpt->at(ijet), pthat_weight);
+            }
+
             h_rawpt->Fill(jtpt->at(ijet), weight);
             h_jteta->Fill(jteta->at(ijet), weight);
             h_jtphi->Fill(jtphi->at(ijet), weight);
@@ -218,6 +250,9 @@ void plot_from_jra(TString input_file="", TString output_file="jet_kinematics.ro
     h_jes_vs_refpt_vs_jteta->Write();
     h_jes_w_jec_vs_refpt_vs_jteta_s->Write();
     h_jes_vs_refpt_vs_jteta_s->Write();
+
+    h_refpt_vs_pthat->Write();
+    h_refpt_vs_pthat_w->Write();
 
     fout->Close();
     delete fout;

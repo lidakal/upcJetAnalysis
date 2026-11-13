@@ -20,7 +20,8 @@ cd /u/user/lidakal/UPC2023/upcJetAnalysis/JEC/
 # ----------------------------------------------------------------------
 
 echo "===== Running ROOT macro ====="
-root -b -q plot_from_jra.C\(\"$INPUTFILE\",\"$OUTPUTFILE\"\)
+# root -b -q plot_from_jra.C\(\"$INPUTFILE\",\"$OUTPUTFILE\"\)
+root -b -q plot_jes.C\(\"$INPUTFILE\",\"$OUTPUTFILE\"\)
 
 EXITCODE=$?
 

@@ -1,0 +1,10 @@
+/u/user/lidakal/SE_UserHome/GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV/crab_GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV_JRA/260617_114043/0000/merged_JRA.root
+/u/user/lidakal/SE_UserHome/GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV/crab_GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV_JRA/260617_114043/0001/merged_JRA.root
+/u/user/lidakal/SE_UserHome/GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV/crab_GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV_JRA/260617_114043/0002/merged_JRA.root
+/u/user/lidakal/SE_UserHome/GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV/crab_GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV_JRA/260617_114043/0003/merged_JRA.root
+/u/user/lidakal/SE_UserHome/GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV/crab_GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV_JRA/260617_114043/0004/merged_JRA.root
+/u/user/lidakal/SE_UserHome/GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV/crab_GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV_JRA/260617_114043/0005/merged_JRA.root
+/u/user/lidakal/SE_UserHome/GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV/crab_GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV_JRA/260617_114043/0006/merged_JRA.root
+/u/user/lidakal/SE_UserHome/GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV/crab_GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV_JRA/260617_114043/0007/merged_JRA.root
+/u/user/lidakal/SE_UserHome/GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV/crab_GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV_JRA/260617_114043/0008/merged_JRA.root
+/u/user/lidakal/SE_UserHome/GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV/crab_GNucleus-QCD-PhotonBeamB_Pthat20_5p36TeV_JRA/260617_114043/0009/merged_JRA.root

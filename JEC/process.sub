@@ -2,8 +2,8 @@ universe              = vanilla
 executable            = process.sh
 
 # Arguments
-inputfiles = /u/user/lidakal/UPC2023/upcJetAnalysis/JEC/beamA_pthat5_merged_files.txt
-outputfile = /u/user/lidakal/SE_UserHome/condorOutputRootMacro/output_$(Cluster)_$(Process).root
+inputfiles = /u/user/lidakal/UPC2023/upcJetAnalysis/analyses/common/filelists/beamB_diffraction_pthat10_forest_files.txt
+outputfile = /u/user/lidakal/UPC2023/upcJetAnalysis/JEC/out/output_$(Cluster)_$(Process).root
 
 arguments             = $(inputfile) $(outputfile)
 
@@ -16,7 +16,7 @@ transfer_input_files  = process.sh
 # Logs
 output = log/job_$(Cluster)_$(Process).out
 error  = log/job_$(Cluster)_$(Process).err
-log    = log/job_$(Cluster).log
+log    = log/job_$(Cluster)_$(Process).log
 
 # Resources
 request_cpus   = 1
